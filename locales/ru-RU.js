@@ -1,4 +1,4 @@
-window.XBOARD_TRANSLATIONS = window.XBOARD_TRANSLATIONS || {};
+﻿window.XBOARD_TRANSLATIONS = window.XBOARD_TRANSLATIONS || {};
 window.XBOARD_TRANSLATIONS['ru-RU'] = {
   "theme": {
     "title": "Конфигурация тем",
@@ -1712,6 +1712,21 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
         "title": "Интервал отправки данных (Push)",
         "description": "Частота, с которой узлы отправляют статистику в панель.",
         "placeholder": "Введите интервал"
+      },
+      "traffic_stats_mode": {
+        "title": "Traffic Statistics Mode",
+        "description": "Controls extra node traffic aggregation. Legacy nodes continue to work normally.",
+        "placeholder": "Select statistics mode",
+        "options": {
+          "off": "Off",
+          "privacy": "Privacy statistics",
+          "diagnostic": "Authorized diagnostics"
+        }
+      },
+      "traffic_stats_interval": {
+        "title": "Traffic Statistics Interval",
+        "description": "Aggregation interval in minutes for node/category/domain traffic statistics.",
+        "placeholder": "Enter interval in minutes"
       },
       "device_limit_mode": {
         "title": "Режим лимита устройств",

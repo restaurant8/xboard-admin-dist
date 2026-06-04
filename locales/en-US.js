@@ -1739,6 +1739,21 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
         "description": "The frequency at which nodes push data to the panel.",
         "placeholder": "Enter push interval"
       },
+      "traffic_stats_mode": {
+        "title": "Traffic Statistics Mode",
+        "description": "Controls extra node traffic aggregation. Legacy nodes that do not support it will continue to work normally.",
+        "placeholder": "Select statistics mode",
+        "options": {
+          "off": "Off",
+          "privacy": "Privacy statistics",
+          "diagnostic": "Authorized diagnostics"
+        }
+      },
+      "traffic_stats_interval": {
+        "title": "Traffic Statistics Interval",
+        "description": "Aggregation interval in minutes for node/category/domain traffic statistics.",
+        "placeholder": "Enter interval in minutes"
+      },
       "device_limit_mode": {
         "title": "Device Limit Mode",
         "description": "In relaxed mode, using multiple nodes from the same IP address counts as one device.",
