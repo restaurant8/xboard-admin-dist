@@ -213,6 +213,21 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
         "description": "Частота, с которой узлы отправляют статистику в панель.",
         "placeholder": "Введите интервал"
       },
+      "traffic_stats_mode": {
+        "title": "Режим статистики трафика",
+        "description": "Управляет дополнительной агрегацией трафика узлов. Старые узлы продолжают работать нормально.",
+        "placeholder": "Выберите режим статистики",
+        "options": {
+          "off": "Выкл.",
+          "privacy": "Приватная статистика",
+          "diagnostic": "Авторизованная диагностика"
+        }
+      },
+      "traffic_stats_interval": {
+        "title": "Интервал статистики трафика",
+        "description": "Интервал агрегации статистики трафика по узлам, категориям и доменам в минутах.",
+        "placeholder": "Введите интервал в минутах"
+      },
       "device_limit_mode": {
         "title": "Режим лимита устройств",
         "description": "В мягком режиме несколько узлов с одного IP считаются как одно устройство.",
@@ -1095,7 +1110,9 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
     "orderManagement": "Заказы",
     "couponManagement": "Купоны",
     "userManagement": "Пользователи",
-    "ticketManagement": "Тикеты"
+    "ticketManagement": "Тикеты",
+    "statisticsAnalysis": "Статистика",
+    "trafficDiagnostics": "Диагностика трафика"
   },
   "auth": {
     "signIn": {
@@ -2930,7 +2947,45 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
     "userManagement": "Пользователи",
     "trafficResetLogs": "Логи сброса трафика",
     "ticketManagement": "Тикеты",
+    "statisticsAnalysis": "Статистика",
+    "trafficDiagnostics": "Диагностика трафика",
     "pluginApps": "Приложения плагинов"
+  },
+  "trafficDiagnostics": {
+    "title": "Диагностика трафика",
+    "description": "Рейтинг трафика по периоду, узлу, категории, режиму и основному домену.",
+    "privacyHint": "В режиме приватной статистики отображаются только узел и категория. Основной домен скрыт.",
+    "diagnosticHint": "В режиме авторизованной диагностики отображается основной домен.",
+    "mode": {
+      "all": "Все режимы",
+      "privacy": "Приватная статистика",
+      "diagnostic": "Авторизованная диагностика"
+    },
+    "filters": {
+      "start": "Начало",
+      "end": "Конец",
+      "server": "Узел",
+      "category": "Категория",
+      "domain": "Основной домен",
+      "orderBy": "Сортировка",
+      "refresh": "Обновить"
+    },
+    "columns": {
+      "node": "Узел",
+      "mode": "Режим",
+      "category": "Категория",
+      "domain": "Основной домен",
+      "upload": "Загрузка",
+      "download": "Скачивание",
+      "total": "Всего трафика"
+    },
+    "summary": {
+      "upload": "Загрузка",
+      "download": "Скачивание",
+      "total": "Всего трафика"
+    },
+    "all": "Все",
+    "empty": "Нет данных диагностики"
   },
   "theme": {
     "title": "Конфигурация тем",
