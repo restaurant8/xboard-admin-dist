@@ -3106,6 +3106,13 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
       "download": "Download",
       "total": "Total traffic"
     },
+    "audit": {
+      "title": "User Traffic Audit",
+      "user": "User",
+      "sourceIp": "Source IP",
+      "destination": "Destination",
+      "empty": "No user audit data"
+    },
     "all": "All",
     "empty": "No diagnostic data"
   },
