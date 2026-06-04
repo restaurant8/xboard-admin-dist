@@ -1112,8 +1112,8 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
     "userManagement": "User Management",
     "ticketManagement": "Ticket Management",
     "statisticsAnalysis": "Statistics",
-    "trafficDiagnostics": "Traffic Diagnostics",
-    "userTrafficAudit": "User Traffic Audit"
+    "trafficDiagnostics": "Traffic Audit",
+    "userTrafficAudit": "Traffic Audit"
   },
   "auth": {
     "signIn": {
@@ -3053,16 +3053,17 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
     "trafficResetLogs": "Traffic Reset Logs",
     "ticketManagement": "Ticket Management",
     "statisticsAnalysis": "Statistics",
-    "trafficDiagnostics": "Traffic Diagnostics",
-    "userTrafficAudit": "User Traffic Audit",
+    "trafficDiagnostics": "Traffic Audit",
+    "userTrafficAudit": "Traffic Audit",
     "pluginApps": "Plugin Apps"
   },
   "translation": {
     "trafficDiagnostics": {
-      "title": "Traffic Diagnostics",
-      "description": "Rank node traffic by time range, node, category, mode, and main domain.",
+      "title": "Traffic Audit",
+      "description": "Audit traffic by time range, node, category, mode, user, source IP, and destination.",
       "privacyHint": "Privacy mode only shows node and category. Main domain is hidden.",
       "diagnosticHint": "Authorized diagnostic mode shows main domain.",
+      "sections": {"node": "Node Traffic Summary", "user": "User Traffic Details"},
       "mode": {
         "all": "All modes",
         "privacy": "Privacy statistics",
@@ -3109,10 +3110,11 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
     }
   },
   "trafficDiagnostics": {
-    "title": "Traffic Diagnostics",
-    "description": "Rank node traffic by time range, node, category, mode, and main domain.",
+    "title": "Traffic Audit",
+    "description": "Audit traffic by time range, node, category, mode, user, source IP, and destination.",
     "privacyHint": "Privacy mode only shows node and category. Main domain is hidden.",
     "diagnosticHint": "Authorized diagnostic mode shows main domain.",
+    "sections": {"node": "Node Traffic Summary", "user": "User Traffic Details"},
     "mode": {
       "all": "All modes",
       "privacy": "Privacy statistics",

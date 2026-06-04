@@ -1115,8 +1115,8 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
     "userManagement": "用户管理",
     "ticketManagement": "工单管理",
     "statisticsAnalysis": "统计分析",
-    "trafficDiagnostics": "流量诊断",
-    "userTrafficAudit": "用户流量审计"
+    "trafficDiagnostics": "流量审计",
+    "userTrafficAudit": "流量审计"
   },
   "auth": {
     "signIn": {
@@ -3068,16 +3068,17 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
     "ticketManagement": "工单管理",
     "trafficResetLogs": "流量重置日志",
     "statisticsAnalysis": "统计分析",
-    "trafficDiagnostics": "流量诊断",
-    "userTrafficAudit": "用户流量审计",
+    "trafficDiagnostics": "流量审计",
+    "userTrafficAudit": "流量审计",
     "pluginApps": "插件应用"
   },
   "translation": {
     "trafficDiagnostics": {
-      "title": "流量诊断",
-      "description": "按时间、节点、分类、模式和主域名查看节点流量排行。",
+      "title": "流量审计",
+      "description": "按时间、节点、分类、模式、用户、来源 IP 和目标审计流量，汇总节点排行并追踪用户明细。",
       "privacyHint": "隐私统计模式仅显示节点和类别，不显示主域名。",
       "diagnosticHint": "授权诊断模式会显示主域名。",
+      "sections": {"node": "节点流量汇总", "user": "用户流量明细"},
       "mode": {
         "all": "全部模式",
         "privacy": "隐私统计",
@@ -3124,10 +3125,11 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
     }
   },
   "trafficDiagnostics": {
-    "title": "流量诊断",
-    "description": "按时间、节点、分类、模式和主域名查看节点流量排行。",
+    "title": "流量审计",
+    "description": "按时间、节点、分类、模式、用户、来源 IP 和目标审计流量，汇总节点排行并追踪用户明细。",
     "privacyHint": "隐私统计模式仅显示节点和类别，不显示主域名。",
     "diagnosticHint": "授权诊断模式会显示主域名。",
+    "sections": {"node": "节点流量汇总", "user": "用户流量明细"},
     "mode": {
       "all": "全部模式",
       "privacy": "隐私统计",
