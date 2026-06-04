@@ -1110,7 +1110,47 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
     "orderManagement": "Заказы",
     "couponManagement": "Купоны",
     "userManagement": "Пользователи",
-    "ticketManagement": "Тикеты"
+    "trafficResetLogs": "Логи сброса трафика",
+    "ticketManagement": "Тикеты",
+    "statisticsAnalysis": "Статистика",
+    "trafficDiagnostics": "Диагностика трафика",
+    "pluginApps": "Приложения плагинов"
+  },
+  "trafficDiagnostics": {
+    "title": "Диагностика трафика",
+    "description": "Рейтинг трафика по времени, узлу, категории, режиму и основному домену.",
+    "privacyHint": "В режиме приватной статистики отображаются только узел и категория.",
+    "diagnosticHint": "В режиме авторизованной диагностики отображается основной домен.",
+    "mode": {
+      "all": "Все режимы",
+      "privacy": "Приватная статистика",
+      "diagnostic": "Авторизованная диагностика"
+    },
+    "filters": {
+      "start": "Начало",
+      "end": "Конец",
+      "server": "Узел",
+      "category": "Категория",
+      "domain": "Основной домен",
+      "orderBy": "Сортировка",
+      "refresh": "Обновить"
+    },
+    "columns": {
+      "node": "Узел",
+      "mode": "Режим",
+      "category": "Категория",
+      "domain": "Основной домен",
+      "upload": "Загрузка",
+      "download": "Скачивание",
+      "total": "Всего"
+    },
+    "summary": {
+      "upload": "Загрузка",
+      "download": "Скачивание",
+      "total": "Всего"
+    },
+    "all": "Все",
+    "empty": "Нет данных диагностики"
   },
   "auth": {
     "signIn": {

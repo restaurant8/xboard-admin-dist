@@ -1110,7 +1110,47 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
     "orderManagement": "Order Management",
     "couponManagement": "Coupon Management",
     "userManagement": "User Management",
-    "ticketManagement": "Ticket Management"
+    "trafficResetLogs": "Traffic Reset Logs",
+    "ticketManagement": "Ticket Management",
+    "statisticsAnalysis": "Statistics",
+    "trafficDiagnostics": "Traffic Diagnostics",
+    "pluginApps": "Plugin Apps"
+  },
+  "trafficDiagnostics": {
+    "title": "Traffic Diagnostics",
+    "description": "Rank node traffic by time range, node, category, mode, and main domain.",
+    "privacyHint": "Privacy mode only shows node and category. Main domain is hidden.",
+    "diagnosticHint": "Authorized diagnostic mode shows main domain.",
+    "mode": {
+      "all": "All modes",
+      "privacy": "Privacy statistics",
+      "diagnostic": "Authorized diagnostics"
+    },
+    "filters": {
+      "start": "Start time",
+      "end": "End time",
+      "server": "Node",
+      "category": "Category",
+      "domain": "Main domain",
+      "orderBy": "Sort by",
+      "refresh": "Refresh"
+    },
+    "columns": {
+      "node": "Node",
+      "mode": "Mode",
+      "category": "Category",
+      "domain": "Main domain",
+      "upload": "Upload",
+      "download": "Download",
+      "total": "Total traffic"
+    },
+    "summary": {
+      "upload": "Upload",
+      "download": "Download",
+      "total": "Total traffic"
+    },
+    "all": "All",
+    "empty": "No diagnostic data"
   },
   "auth": {
     "signIn": {
