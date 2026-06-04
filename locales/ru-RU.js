@@ -1,4 +1,4 @@
-﻿window.XBOARD_TRANSLATIONS = window.XBOARD_TRANSLATIONS || {};
+window.XBOARD_TRANSLATIONS = window.XBOARD_TRANSLATIONS || {};
 window.XBOARD_TRANSLATIONS['ru-RU'] = {
   "machine": {
     "title": "Управление серверами",
@@ -212,21 +212,6 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
         "title": "Интервал отправки данных (Push)",
         "description": "Частота, с которой узлы отправляют статистику в панель.",
         "placeholder": "Введите интервал"
-      },
-      "traffic_stats_mode": {
-        "title": "Traffic Statistics Mode",
-        "description": "Controls extra node traffic aggregation. Legacy nodes continue to work normally.",
-        "placeholder": "Select statistics mode",
-        "options": {
-          "off": "Off",
-          "privacy": "Privacy statistics",
-          "diagnostic": "Authorized diagnostics"
-        }
-      },
-      "traffic_stats_interval": {
-        "title": "Traffic Statistics Interval",
-        "description": "Aggregation interval in minutes for node/category/domain traffic statistics.",
-        "placeholder": "Enter interval in minutes"
       },
       "device_limit_mode": {
         "title": "Режим лимита устройств",
@@ -1110,47 +1095,7 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
     "orderManagement": "Заказы",
     "couponManagement": "Купоны",
     "userManagement": "Пользователи",
-    "trafficResetLogs": "Логи сброса трафика",
-    "ticketManagement": "Тикеты",
-    "statisticsAnalysis": "Статистика",
-    "trafficDiagnostics": "Диагностика трафика",
-    "pluginApps": "Приложения плагинов"
-  },
-  "trafficDiagnostics": {
-    "title": "Диагностика трафика",
-    "description": "Рейтинг трафика по времени, узлу, категории, режиму и основному домену.",
-    "privacyHint": "В режиме приватной статистики отображаются только узел и категория.",
-    "diagnosticHint": "В режиме авторизованной диагностики отображается основной домен.",
-    "mode": {
-      "all": "Все режимы",
-      "privacy": "Приватная статистика",
-      "diagnostic": "Авторизованная диагностика"
-    },
-    "filters": {
-      "start": "Начало",
-      "end": "Конец",
-      "server": "Узел",
-      "category": "Категория",
-      "domain": "Основной домен",
-      "orderBy": "Сортировка",
-      "refresh": "Обновить"
-    },
-    "columns": {
-      "node": "Узел",
-      "mode": "Режим",
-      "category": "Категория",
-      "domain": "Основной домен",
-      "upload": "Загрузка",
-      "download": "Скачивание",
-      "total": "Всего"
-    },
-    "summary": {
-      "upload": "Загрузка",
-      "download": "Скачивание",
-      "total": "Всего"
-    },
-    "all": "Все",
-    "empty": "Нет данных диагностики"
+    "ticketManagement": "Тикеты"
   },
   "auth": {
     "signIn": {

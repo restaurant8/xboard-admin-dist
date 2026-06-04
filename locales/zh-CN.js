@@ -1,4 +1,4 @@
-﻿window.XBOARD_TRANSLATIONS = window.XBOARD_TRANSLATIONS || {};
+window.XBOARD_TRANSLATIONS = window.XBOARD_TRANSLATIONS || {};
 window.XBOARD_TRANSLATIONS['zh-CN'] = {
   "machine": {
     "title": "服务器管理",
@@ -780,21 +780,6 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
         "description": "节点推送数据到面板的间隔频率。",
         "placeholder": "请输入推送间隔"
       },
-      "traffic_stats_mode": {
-        "title": "流量统计模式",
-        "description": "控制节点额外上报的流量聚合维度；暂未升级的旧节点会继续按原方式工作。",
-        "placeholder": "请选择统计模式",
-        "options": {
-          "off": "关闭",
-          "privacy": "隐私统计模式",
-          "diagnostic": "授权诊断模式"
-        }
-      },
-      "traffic_stats_interval": {
-        "title": "流量统计周期",
-        "description": "节点、类别、域名流量统计的聚合周期，单位为分钟。",
-        "placeholder": "请输入周期分钟数"
-      },
       "device_limit_mode": {
         "title": "设备限制模式",
         "description": "宽松模式下，同一IP地址使用多个节点只统计为一个设备。",
@@ -1113,47 +1098,7 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
     "orderManagement": "订单管理",
     "couponManagement": "优惠券管理",
     "userManagement": "用户管理",
-    "ticketManagement": "工单管理",
-    "trafficResetLogs": "流量重置日志",
-    "statisticsAnalysis": "统计分析",
-    "trafficDiagnostics": "流量诊断",
-    "pluginApps": "插件应用"
-  },
-  "trafficDiagnostics": {
-    "title": "流量诊断",
-    "description": "按时间、节点、类别、模式和主域名查看节点流量排行。",
-    "privacyHint": "隐私统计模式仅显示节点和类别，不显示主域名。",
-    "diagnosticHint": "授权诊断模式会显示主域名。",
-    "mode": {
-      "all": "全部模式",
-      "privacy": "隐私统计",
-      "diagnostic": "授权诊断"
-    },
-    "filters": {
-      "start": "开始时间",
-      "end": "结束时间",
-      "server": "节点",
-      "category": "类别",
-      "domain": "主域名",
-      "orderBy": "排序",
-      "refresh": "刷新"
-    },
-    "columns": {
-      "node": "节点",
-      "mode": "模式",
-      "category": "类别",
-      "domain": "主域名",
-      "upload": "上传",
-      "download": "下载",
-      "total": "总流量"
-    },
-    "summary": {
-      "upload": "上传",
-      "download": "下载",
-      "total": "总流量"
-    },
-    "all": "全部",
-    "empty": "暂无诊断数据"
+    "ticketManagement": "工单管理"
   },
   "auth": {
     "signIn": {

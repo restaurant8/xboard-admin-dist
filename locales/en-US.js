@@ -1,4 +1,4 @@
-﻿window.XBOARD_TRANSLATIONS = window.XBOARD_TRANSLATIONS || {};
+window.XBOARD_TRANSLATIONS = window.XBOARD_TRANSLATIONS || {};
 window.XBOARD_TRANSLATIONS['en-US'] = {
   "machine": {
     "title": "Server Management",
@@ -213,21 +213,6 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
         "description": "The frequency at which nodes push data to the panel.",
         "placeholder": "Enter push interval"
       },
-      "traffic_stats_mode": {
-        "title": "Traffic Statistics Mode",
-        "description": "Controls extra node traffic aggregation. Legacy nodes that do not support it will continue to work normally.",
-        "placeholder": "Select statistics mode",
-        "options": {
-          "off": "Off",
-          "privacy": "Privacy statistics",
-          "diagnostic": "Authorized diagnostics"
-        }
-      },
-      "traffic_stats_interval": {
-        "title": "Traffic Statistics Interval",
-        "description": "Aggregation interval in minutes for node/category/domain traffic statistics.",
-        "placeholder": "Enter interval in minutes"
-      },
       "device_limit_mode": {
         "title": "Device Limit Mode",
         "description": "In relaxed mode, using multiple nodes from the same IP address counts as one device.",
@@ -363,7 +348,7 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
         },
         "currencySymbol": {
           "label": "Currency Symbol",
-          "placeholder": "楼",
+          "placeholder": "¥",
           "description": "For display only, changing this will affect all currency symbols in the system."
         }
       }
@@ -660,7 +645,7 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
             "template": {
               "button": "Use Template",
               "tooltip": "Click to use preset plan description template",
-              "content": "## Plan Features\n鈥?High-speed and stable global network access\n鈥?Support multiple devices online simultaneously\n鈥?Unlimited traffic reset\n\n## Usage Instructions\n1. Supported devices: iOS, Android, Windows, macOS\n2. 24/7 technical support\n3. Automatic periodic traffic reset\n\n## Notes\n- No abuse allowed\n- Comply with local laws and regulations\n- Support plan changes anytime"
+              "content": "## Plan Features\n• High-speed and stable global network access\n• Support multiple devices online simultaneously\n• Unlimited traffic reset\n\n## Usage Instructions\n1. Supported devices: iOS, Android, Windows, macOS\n2. 24/7 technical support\n3. Automatic periodic traffic reset\n\n## Notes\n- No abuse allowed\n- Comply with local laws and regulations\n- Support plan changes anytime"
             }
           },
           "force_update": {
@@ -1110,47 +1095,7 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
     "orderManagement": "Order Management",
     "couponManagement": "Coupon Management",
     "userManagement": "User Management",
-    "trafficResetLogs": "Traffic Reset Logs",
-    "ticketManagement": "Ticket Management",
-    "statisticsAnalysis": "Statistics",
-    "trafficDiagnostics": "Traffic Diagnostics",
-    "pluginApps": "Plugin Apps"
-  },
-  "trafficDiagnostics": {
-    "title": "Traffic Diagnostics",
-    "description": "Rank node traffic by time range, node, category, mode, and main domain.",
-    "privacyHint": "Privacy mode only shows node and category. Main domain is hidden.",
-    "diagnosticHint": "Authorized diagnostic mode shows main domain.",
-    "mode": {
-      "all": "All modes",
-      "privacy": "Privacy statistics",
-      "diagnostic": "Authorized diagnostics"
-    },
-    "filters": {
-      "start": "Start time",
-      "end": "End time",
-      "server": "Node",
-      "category": "Category",
-      "domain": "Main domain",
-      "orderBy": "Sort by",
-      "refresh": "Refresh"
-    },
-    "columns": {
-      "node": "Node",
-      "mode": "Mode",
-      "category": "Category",
-      "domain": "Main domain",
-      "upload": "Upload",
-      "download": "Download",
-      "total": "Total traffic"
-    },
-    "summary": {
-      "upload": "Upload",
-      "download": "Download",
-      "total": "Total traffic"
-    },
-    "all": "All",
-    "empty": "No diagnostic data"
+    "ticketManagement": "Ticket Management"
   },
   "auth": {
     "signIn": {
@@ -1277,7 +1222,7 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
           "invite_reward_rate": {
             "label": "Inviter Reward Rate",
             "placeholder": "Example: 0.2 (represents 20%)",
-            "description": "When user has an inviter, inviter reward = balance reward 脳 this rate"
+            "description": "When user has an inviter, inviter reward = balance reward × this rate"
           }
         },
         "rewards": {
@@ -2797,7 +2742,7 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
     "noResults": "No results found",
     "shortcut": {
       "label": "Search",
-      "key": "鈱楰"
+      "key": "⌘K"
     }
   },
   "order": {
@@ -3533,11 +3478,11 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
     },
     "languages": {
       "en-US": "English",
-      "ja-JP": "鏃ユ湰瑾?,
-      "ko-KR": "頃滉淡鞏?,
-      "vi-VN": "Ti岷縩g Vi峄噒",
-      "zh-CN": "绠€浣撲腑鏂?,
-      "zh-TW": "绻侀珨涓枃",
+      "ja-JP": "日本語",
+      "ko-KR": "한국어",
+      "vi-VN": "Tiếng Việt",
+      "zh-CN": "简体中文",
+      "zh-TW": "繁體中文",
       "ru-RU": "Russian"
     },
     "messages": {
