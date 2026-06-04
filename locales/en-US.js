@@ -3035,6 +3035,44 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
     "trafficDiagnostics": "Traffic Diagnostics",
     "pluginApps": "Plugin Apps"
   },
+  "translation": {
+    "trafficDiagnostics": {
+      "title": "Traffic Diagnostics",
+      "description": "Rank node traffic by time range, node, category, mode, and main domain.",
+      "privacyHint": "Privacy mode only shows node and category. Main domain is hidden.",
+      "diagnosticHint": "Authorized diagnostic mode shows main domain.",
+      "mode": {
+        "all": "All modes",
+        "privacy": "Privacy statistics",
+        "diagnostic": "Authorized diagnostics"
+      },
+      "filters": {
+        "start": "Start time",
+        "end": "End time",
+        "server": "Node",
+        "category": "Category",
+        "domain": "Main domain",
+        "orderBy": "Sort by",
+        "refresh": "Refresh"
+      },
+      "columns": {
+        "node": "Node",
+        "mode": "Mode",
+        "category": "Category",
+        "domain": "Main domain",
+        "upload": "Upload",
+        "download": "Download",
+        "total": "Total traffic"
+      },
+      "summary": {
+        "upload": "Upload",
+        "download": "Download",
+        "total": "Total traffic"
+      },
+      "all": "All",
+      "empty": "No diagnostic data"
+    }
+  },
   "trafficDiagnostics": {
     "title": "Traffic Diagnostics",
     "description": "Rank node traffic by time range, node, category, mode, and main domain.",

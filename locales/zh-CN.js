@@ -3050,6 +3050,44 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
     "trafficDiagnostics": "流量诊断",
     "pluginApps": "插件应用"
   },
+  "translation": {
+    "trafficDiagnostics": {
+      "title": "流量诊断",
+      "description": "按时间、节点、分类、模式和主域名查看节点流量排行。",
+      "privacyHint": "隐私统计模式仅显示节点和类别，不显示主域名。",
+      "diagnosticHint": "授权诊断模式会显示主域名。",
+      "mode": {
+        "all": "全部模式",
+        "privacy": "隐私统计",
+        "diagnostic": "授权诊断"
+      },
+      "filters": {
+        "start": "开始时间",
+        "end": "结束时间",
+        "server": "节点",
+        "category": "类别",
+        "domain": "主域名",
+        "orderBy": "排序方式",
+        "refresh": "刷新"
+      },
+      "columns": {
+        "node": "节点",
+        "mode": "模式",
+        "category": "类别",
+        "domain": "主域名",
+        "upload": "上传",
+        "download": "下载",
+        "total": "总流量"
+      },
+      "summary": {
+        "upload": "上传",
+        "download": "下载",
+        "total": "总流量"
+      },
+      "all": "全部",
+      "empty": "暂无诊断数据"
+    }
+  },
   "trafficDiagnostics": {
     "title": "流量诊断",
     "description": "按时间、节点、分类、模式和主域名查看节点流量排行。",
