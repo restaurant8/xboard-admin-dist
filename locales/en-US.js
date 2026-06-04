@@ -2344,6 +2344,7 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
         "start": "Start time",
         "end": "End time",
         "refresh": "Refresh",
+        "time": "Time",
         "node": "Node",
         "sourceIp": "Source IP",
         "domain": "Main domain",
@@ -2351,6 +2352,8 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
         "destinationPlaceholder": "Enter destination domain or IP",
         "all": "All",
         "orderBy": "Sort by",
+        "prev": "Previous",
+        "next": "Next",
         "empty": "No user audit data"
       }
     }
@@ -3089,9 +3092,13 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
       },
       "audit": {
         "title": "User Traffic Audit",
+        "time": "Time",
         "user": "User",
         "sourceIp": "Source IP",
         "destination": "Destination",
+        "prev": "Previous",
+        "next": "Next",
+        "page": "Page {{current}} / {{total}}",
         "empty": "No user audit data"
       },
       "all": "All",
@@ -3134,10 +3141,14 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
     },
     "audit": {
       "title": "User Traffic Audit",
-      "user": "User",
+      "time": "Time",
+        "user": "User",
       "sourceIp": "Source IP",
       "destination": "Destination",
-      "empty": "No user audit data"
+      "prev": "Previous",
+        "next": "Next",
+        "page": "Page {{current}} / {{total}}",
+        "empty": "No user audit data"
     },
     "all": "All",
     "empty": "No diagnostic data"

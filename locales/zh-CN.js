@@ -2371,6 +2371,7 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
         "start": "\u5f00\u59cb\u65f6\u95f4",
         "end": "\u7ed3\u675f\u65f6\u95f4",
         "refresh": "\u5237\u65b0",
+        "time": "\u65f6\u95f4",
         "node": "\u8282\u70b9",
         "sourceIp": "\u6765\u6e90 IP",
         "domain": "\u4e3b\u57df\u540d",
@@ -2378,6 +2379,8 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
         "destinationPlaceholder": "\u8f93\u5165\u76ee\u6807\u57df\u540d\u6216 IP",
         "all": "\u5168\u90e8",
         "orderBy": "\u6392\u5e8f\u65b9\u5f0f",
+        "prev": "\u4e0a\u4e00\u9875",
+        "next": "\u4e0b\u4e00\u9875",
         "empty": "\u6682\u65e0\u7528\u6237\u5ba1\u8ba1\u6570\u636e"
       }
     }
@@ -3104,9 +3107,13 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
       },
       "audit": {
         "title": "\u7528\u6237\u6d41\u91cf\u5ba1\u8ba1",
+        "time": "\u65f6\u95f4",
         "user": "\u7528\u6237",
         "sourceIp": "\u6765\u6e90 IP",
         "destination": "\u76ee\u6807",
+        "prev": "\u4e0a\u4e00\u9875",
+        "next": "\u4e0b\u4e00\u9875",
+        "page": "\u7b2c {{current}} / {{total}} \u9875",
         "empty": "\u6682\u65e0\u7528\u6237\u5ba1\u8ba1\u6570\u636e"
       },
       "all": "全部",
@@ -3149,10 +3156,14 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
     },
     "audit": {
       "title": "\u7528\u6237\u6d41\u91cf\u5ba1\u8ba1",
-      "user": "\u7528\u6237",
+      "time": "\u65f6\u95f4",
+        "user": "\u7528\u6237",
       "sourceIp": "\u6765\u6e90 IP",
       "destination": "\u76ee\u6807",
-      "empty": "\u6682\u65e0\u7528\u6237\u5ba1\u8ba1\u6570\u636e"
+      "prev": "\u4e0a\u4e00\u9875",
+        "next": "\u4e0b\u4e00\u9875",
+        "page": "\u7b2c {{current}} / {{total}} \u9875",
+        "empty": "\u6682\u65e0\u7528\u6237\u5ba1\u8ba1\u6570\u636e"
     },
     "all": "全部",
     "empty": "暂无诊断数据"
