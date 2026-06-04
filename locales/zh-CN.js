@@ -1,4 +1,4 @@
-window.XBOARD_TRANSLATIONS = window.XBOARD_TRANSLATIONS || {};
+﻿window.XBOARD_TRANSLATIONS = window.XBOARD_TRANSLATIONS || {};
 window.XBOARD_TRANSLATIONS['zh-CN'] = {
   "machine": {
     "title": "服务器管理",
@@ -779,6 +779,21 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
         "title": "节点推送动作轮询间隔",
         "description": "节点推送数据到面板的间隔频率。",
         "placeholder": "请输入推送间隔"
+      },
+      "traffic_stats_mode": {
+        "title": "流量统计模式",
+        "description": "控制节点额外上报的流量聚合维度；暂未升级的旧节点会继续按原方式工作。",
+        "placeholder": "请选择统计模式",
+        "options": {
+          "off": "关闭",
+          "privacy": "隐私统计模式",
+          "diagnostic": "授权诊断模式"
+        }
+      },
+      "traffic_stats_interval": {
+        "title": "流量统计周期",
+        "description": "节点、类别、域名流量统计的聚合周期，单位为分钟。",
+        "placeholder": "请输入周期分钟数"
       },
       "device_limit_mode": {
         "title": "设备限制模式",
