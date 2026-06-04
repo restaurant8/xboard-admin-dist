@@ -1112,7 +1112,8 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
     "userManagement": "User Management",
     "ticketManagement": "Ticket Management",
     "statisticsAnalysis": "Statistics",
-    "trafficDiagnostics": "Traffic Diagnostics"
+    "trafficDiagnostics": "Traffic Diagnostics",
+    "userTrafficAudit": "User Traffic Audit"
   },
   "auth": {
     "signIn": {
@@ -3053,6 +3054,7 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
     "ticketManagement": "Ticket Management",
     "statisticsAnalysis": "Statistics",
     "trafficDiagnostics": "Traffic Diagnostics",
+    "userTrafficAudit": "User Traffic Audit",
     "pluginApps": "Plugin Apps"
   },
   "translation": {
@@ -3092,6 +3094,7 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
       },
       "audit": {
         "title": "User Traffic Audit",
+        "description": "Review user traffic by time, user, node, source IP, and destination.",
         "time": "Time",
         "user": "User",
         "sourceIp": "Source IP",
@@ -3141,7 +3144,8 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
     },
     "audit": {
       "title": "User Traffic Audit",
-      "time": "Time",
+      "description": "Review user traffic by time, user, node, source IP, and destination.",
+        "time": "Time",
         "user": "User",
       "sourceIp": "Source IP",
       "destination": "Destination",

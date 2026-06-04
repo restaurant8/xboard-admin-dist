@@ -1115,7 +1115,8 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
     "userManagement": "用户管理",
     "ticketManagement": "工单管理",
     "statisticsAnalysis": "统计分析",
-    "trafficDiagnostics": "流量诊断"
+    "trafficDiagnostics": "流量诊断",
+    "userTrafficAudit": "用户流量审计"
   },
   "auth": {
     "signIn": {
@@ -3068,6 +3069,7 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
     "trafficResetLogs": "流量重置日志",
     "statisticsAnalysis": "统计分析",
     "trafficDiagnostics": "流量诊断",
+    "userTrafficAudit": "用户流量审计",
     "pluginApps": "插件应用"
   },
   "translation": {
@@ -3107,6 +3109,7 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
       },
       "audit": {
         "title": "\u7528\u6237\u6d41\u91cf\u5ba1\u8ba1",
+        "description": "\u6309\u65f6\u95f4\u3001\u7528\u6237\u3001\u8282\u70b9\u3001\u6765\u6e90 IP \u548c\u76ee\u6807\u67e5\u770b\u7528\u6237\u6d41\u91cf\u660e\u7ec6\u3002",
         "time": "\u65f6\u95f4",
         "user": "\u7528\u6237",
         "sourceIp": "\u6765\u6e90 IP",
@@ -3156,7 +3159,8 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
     },
     "audit": {
       "title": "\u7528\u6237\u6d41\u91cf\u5ba1\u8ba1",
-      "time": "\u65f6\u95f4",
+      "description": "\u6309\u65f6\u95f4\u3001\u7528\u6237\u3001\u8282\u70b9\u3001\u6765\u6e90 IP \u548c\u76ee\u6807\u67e5\u770b\u7528\u6237\u6d41\u91cf\u660e\u7ec6\u3002",
+        "time": "\u65f6\u95f4",
         "user": "\u7528\u6237",
       "sourceIp": "\u6765\u6e90 IP",
       "destination": "\u76ee\u6807",
