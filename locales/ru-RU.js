@@ -1112,8 +1112,8 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
     "userManagement": "Пользователи",
     "ticketManagement": "Тикеты",
     "statisticsAnalysis": "Статистика",
-    "trafficDiagnostics": "Traffic Audit",
-    "userTrafficAudit": "Traffic Audit"
+    "trafficDiagnostics": "Диагностика трафика",
+    "userTrafficAudit": "User Traffic Audit"
   },
   "auth": {
     "signIn": {
@@ -2969,17 +2969,16 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
     "trafficResetLogs": "Логи сброса трафика",
     "ticketManagement": "Тикеты",
     "statisticsAnalysis": "Статистика",
-    "trafficDiagnostics": "Traffic Audit",
-    "userTrafficAudit": "Traffic Audit",
+    "trafficDiagnostics": "Диагностика трафика",
+    "userTrafficAudit": "User Traffic Audit",
     "pluginApps": "Приложения плагинов"
   },
   "translation": {
     "trafficDiagnostics": {
-      "title": "Traffic Audit",
-      "description": "Audit traffic by time range, node, category, mode, user, source IP, and destination.",
+      "title": "Диагностика трафика",
+      "description": "Рейтинг трафика по периоду, узлу, категории, режиму и основному домену.",
       "privacyHint": "В режиме приватной статистики отображаются только узел и категория. Основной домен скрыт.",
       "diagnosticHint": "В режиме авторизованной диагностики отображается основной домен.",
-      "sections": {"node": "Node Traffic Summary", "user": "User Traffic Details"},
       "mode": {
         "all": "Все режимы",
         "privacy": "Приватная статистика",
@@ -3026,11 +3025,10 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
     }
   },
   "trafficDiagnostics": {
-    "title": "Traffic Audit",
-    "description": "Audit traffic by time range, node, category, mode, user, source IP, and destination.",
+    "title": "Диагностика трафика",
+    "description": "Рейтинг трафика по периоду, узлу, категории, режиму и основному домену.",
     "privacyHint": "В режиме приватной статистики отображаются только узел и категория. Основной домен скрыт.",
     "diagnosticHint": "В режиме авторизованной диагностики отображается основной домен.",
-    "sections": {"node": "Node Traffic Summary", "user": "User Traffic Details"},
     "mode": {
       "all": "Все режимы",
       "privacy": "Приватная статистика",
