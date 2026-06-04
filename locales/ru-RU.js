@@ -2263,6 +2263,9 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
         "sourceIp": "Source IP",
         "domain": "Main domain",
         "destination": "Destination",
+        "destinationPlaceholder": "Enter destination domain or IP",
+        "all": "All",
+        "orderBy": "Sort by",
         "empty": "No user audit data"
       }
     }

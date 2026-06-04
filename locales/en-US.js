@@ -2348,6 +2348,9 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
         "sourceIp": "Source IP",
         "domain": "Main domain",
         "destination": "Destination",
+        "destinationPlaceholder": "Enter destination domain or IP",
+        "all": "All",
+        "orderBy": "Sort by",
         "empty": "No user audit data"
       }
     }

@@ -2375,6 +2375,9 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
         "sourceIp": "\u6765\u6e90 IP",
         "domain": "\u4e3b\u57df\u540d",
         "destination": "\u76ee\u6807",
+        "destinationPlaceholder": "\u8f93\u5165\u76ee\u6807\u57df\u540d\u6216 IP",
+        "all": "\u5168\u90e8",
+        "orderBy": "\u6392\u5e8f\u65b9\u5f0f",
         "empty": "\u6682\u65e0\u7528\u6237\u5ba1\u8ba1\u6570\u636e"
       }
     }
