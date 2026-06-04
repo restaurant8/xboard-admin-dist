@@ -2985,6 +2985,13 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
         "download": "Скачивание",
         "total": "Всего трафика"
       },
+      "audit": {
+        "title": "User Traffic Audit",
+        "user": "User",
+        "sourceIp": "Source IP",
+        "destination": "Destination",
+        "empty": "No user audit data"
+      },
       "all": "Все",
       "empty": "Нет данных диагностики"
     }

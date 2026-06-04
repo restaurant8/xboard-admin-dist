@@ -3084,6 +3084,13 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
         "download": "下载",
         "total": "总流量"
       },
+      "audit": {
+        "title": "\u7528\u6237\u6d41\u91cf\u5ba1\u8ba1",
+        "user": "\u7528\u6237",
+        "sourceIp": "\u6765\u6e90 IP",
+        "destination": "\u76ee\u6807",
+        "empty": "\u6682\u65e0\u7528\u6237\u5ba1\u8ba1\u6570\u636e"
+      },
       "all": "全部",
       "empty": "暂无诊断数据"
     }
