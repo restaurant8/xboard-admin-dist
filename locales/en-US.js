@@ -2335,7 +2335,21 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
       "perPage": "Show per page",
       "records": "records",
       "page": "Page {{current}} / {{total}}",
-      "multiplier": "{{value}}x"
+      "multiplier": "{{value}}x",
+      "tabs": {
+        "records": "Usage Records",
+        "audit": "Traffic Audit"
+      },
+      "audit": {
+        "start": "Start time",
+        "end": "End time",
+        "refresh": "Refresh",
+        "node": "Node",
+        "sourceIp": "Source IP",
+        "domain": "Main domain",
+        "destination": "Destination",
+        "empty": "No user audit data"
+      }
     }
   },
   "common": {
@@ -3052,7 +3066,8 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
         "server": "Node",
         "category": "Category",
         "domain": "Main domain",
-        "orderBy": "Sort by",
+                "user": "User",
+"orderBy": "Sort by",
         "refresh": "Refresh"
       },
       "columns": {
@@ -3096,7 +3111,8 @@ window.XBOARD_TRANSLATIONS['en-US'] = {
       "server": "Node",
       "category": "Category",
       "domain": "Main domain",
-      "orderBy": "Sort by",
+              "user": "User",
+"orderBy": "Sort by",
       "refresh": "Refresh"
     },
     "columns": {

@@ -2362,7 +2362,21 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
       "perPage": "每页显示",
       "records": "条记录",
       "page": "第 {{current}} / {{total}} 页",
-      "multiplier": "{{value}}x"
+      "multiplier": "{{value}}x",
+      "tabs": {
+        "records": "\u7528\u91cf\u8bb0\u5f55",
+        "audit": "\u6d41\u91cf\u5ba1\u8ba1"
+      },
+      "audit": {
+        "start": "\u5f00\u59cb\u65f6\u95f4",
+        "end": "\u7ed3\u675f\u65f6\u95f4",
+        "refresh": "\u5237\u65b0",
+        "node": "\u8282\u70b9",
+        "sourceIp": "\u6765\u6e90 IP",
+        "domain": "\u4e3b\u57df\u540d",
+        "destination": "\u76ee\u6807",
+        "empty": "\u6682\u65e0\u7528\u6237\u5ba1\u8ba1\u6570\u636e"
+      }
     }
   },
   "common": {
@@ -3067,7 +3081,8 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
         "server": "节点",
         "category": "类别",
         "domain": "主域名",
-        "orderBy": "排序方式",
+                "user": "\u7528\u6237",
+"orderBy": "排序方式",
         "refresh": "刷新"
       },
       "columns": {
@@ -3111,7 +3126,8 @@ window.XBOARD_TRANSLATIONS['zh-CN'] = {
       "server": "节点",
       "category": "类别",
       "domain": "主域名",
-      "orderBy": "排序方式",
+              "user": "\u7528\u6237",
+"orderBy": "排序方式",
       "refresh": "刷新"
     },
     "columns": {

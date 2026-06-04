@@ -2250,7 +2250,21 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
       "perPage": "Показывать по",
       "records": "записей",
       "page": "Страница {{current}} / {{total}}",
-      "multiplier": "{{value}}x"
+      "multiplier": "{{value}}x",
+      "tabs": {
+        "records": "Usage Records",
+        "audit": "Traffic Audit"
+      },
+      "audit": {
+        "start": "Start time",
+        "end": "End time",
+        "refresh": "Refresh",
+        "node": "Node",
+        "sourceIp": "Source IP",
+        "domain": "Main domain",
+        "destination": "Destination",
+        "empty": "No user audit data"
+      }
     }
   },
   "common": {
@@ -2968,7 +2982,8 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
         "server": "Узел",
         "category": "Категория",
         "domain": "Основной домен",
-        "orderBy": "Сортировка",
+                "user": "User",
+"orderBy": "Сортировка",
         "refresh": "Обновить"
       },
       "columns": {
@@ -3012,7 +3027,8 @@ window.XBOARD_TRANSLATIONS['ru-RU'] = {
       "server": "Узел",
       "category": "Категория",
       "domain": "Основной домен",
-      "orderBy": "Сортировка",
+              "user": "User",
+"orderBy": "Сортировка",
       "refresh": "Обновить"
     },
     "columns": {
