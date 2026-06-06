@@ -9,6 +9,9 @@
   var CN_NODE = '\\u8282\\u70b9';
   var CN_ADDRESS = '\\u5730\\u5740';
   var CN_DOMAIN = '\\u57df\\u540d';
+  var CF_TITLE = 'Cloudflare DNS \u81ea\u52a8\u540c\u6b65';
+  var CF_GLOBAL_DESC = '\u914d\u7f6e\u5168\u5c40 Cloudflare DNS \u4fe1\u606f\uff1b\u6bcf\u4e2a\u8282\u70b9\u4ecd\u9700\u5728\u521b\u5efa\u6216\u7f16\u8f91\u8282\u70b9\u65f6\u5355\u72ec\u5f00\u542f\u3002';
+  var CF_NODE_DESC = '\u5f00\u542f\u540e\uff0c\u8be5\u8282\u70b9\u57df\u540d\u4f1a\u81ea\u52a8\u89e3\u6790\u5230\u8282\u70b9\u4e0a\u62a5\u7684\u516c\u7f51 IP\uff0cIP \u53d8\u5316\u65f6\u4e5f\u4f1a\u81ea\u52a8\u66f4\u65b0\u3002';
 
   function parseJson(value) {
     if (!value || typeof value !== 'string') return null;
@@ -181,8 +184,8 @@
       '<label class="flex cursor-pointer items-start gap-3 font-mono text-xs">',
       '<input data-xb-dns-auto-sync-input type="checkbox" class="mt-0.5 h-4 w-4" />',
       '<span class="space-y-1">',
-      '<span class="block text-[12px] font-medium text-foreground/80">Cloudflare DNS auto sync</span>',
-      '<span class="block text-[11px] leading-relaxed text-muted-foreground">When enabled, this node host DNS record is synced to the public IP reported by the node.</span>',
+      '<span class="block text-[12px] font-medium text-foreground/80">' + CF_TITLE + '</span>',
+      '<span class="block text-[11px] leading-relaxed text-muted-foreground">' + CF_NODE_DESC + '</span>',
       '</span>',
       '</label>'
     ].join('');
@@ -236,14 +239,35 @@
     ).test(text);
   }
 
-  function createConfigInput(key, label, placeholder, type) {
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function createConfigInput(key, label, placeholder, description, type) {
     var value = serverConfig[key];
     if (value == null) value = '';
     return [
-      '<label class="space-y-1 text-sm">',
-      '<span class="block font-medium">' + label + '</span>',
-      '<input data-xb-cf-config="' + key + '" type="' + (type || 'text') + '" value="' + String(value).replace(/"/g, '&quot;') + '" placeholder="' + placeholder + '" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />',
-      '</label>'
+      '<div class="space-y-2">',
+      '<label class="block text-sm font-medium">' + label + '</label>',
+      '<input data-xb-cf-config="' + key + '" type="' + (type || 'text') + '" value="' + escapeHtml(value) + '" placeholder="' + escapeHtml(placeholder) + '" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />',
+      '<p class="text-xs leading-relaxed text-muted-foreground">' + description + '</p>',
+      '</div>'
+    ].join('');
+  }
+
+  function createConfigToggle(key, label, description) {
+    return [
+      '<div class="space-y-2">',
+      '<label class="flex items-center gap-3 text-sm font-medium">',
+      '<input data-xb-cf-config="' + key + '" type="checkbox" class="h-4 w-4" ' + (asBool(serverConfig[key]) ? 'checked' : '') + ' />',
+      '<span>' + label + '</span>',
+      '</label>',
+      '<p class="text-xs leading-relaxed text-muted-foreground">' + description + '</p>',
+      '</div>'
     ].join('');
   }
 
@@ -254,19 +278,16 @@
 
     var block = document.createElement('div');
     block.dataset.xbCloudflareConfig = '1';
-    block.className = 'mt-6 space-y-4 rounded-md border bg-card p-4';
+    block.className = 'mt-6 space-y-5 rounded-md border bg-card p-4';
     block.innerHTML = [
       '<div class="space-y-1">',
-      '<div class="text-base font-semibold">Cloudflare DNS auto sync</div>',
-      '<div class="text-sm text-muted-foreground">Global Cloudflare settings. Each node still needs DNS auto sync enabled separately in the node form.</div>',
+      '<div class="text-base font-semibold">' + CF_TITLE + '</div>',
+      '<div class="text-sm text-muted-foreground">' + CF_GLOBAL_DESC + '</div>',
       '</div>',
-      createConfigInput('cloudflare_dns_api_token', 'API Token', 'Cloudflare API Token', 'password'),
-      createConfigInput('cloudflare_dns_zone_id', 'Zone ID', 'Cloudflare Zone ID'),
-      '<label class="flex items-center gap-3 text-sm">',
-      '<input data-xb-cf-config="cloudflare_dns_proxied" type="checkbox" class="h-4 w-4" ' + (asBool(serverConfig.cloudflare_dns_proxied) ? 'checked' : '') + ' />',
-      '<span>Enable Cloudflare proxy</span>',
-      '</label>',
-      createConfigInput('cloudflare_dns_ttl', 'TTL', '1 means automatic', 'number')
+      createConfigInput('cloudflare_dns_api_token', 'Cloudflare API Token', 'Cloudflare API Token', '\u7528\u4e8e\u8c03\u7528 Cloudflare DNS API\uff0c\u5efa\u8bae\u53ea\u6388\u4e88\u76ee\u6807 Zone \u7684 DNS \u7f16\u8f91\u6743\u9650\u3002', 'password'),
+      createConfigInput('cloudflare_dns_zone_id', 'Cloudflare Zone ID', 'Cloudflare Zone ID', '\u57df\u540d\u6240\u5728\u7684 Cloudflare Zone ID\uff0c\u7528\u6765\u5b9a\u4f4d\u8981\u66f4\u65b0\u7684 DNS \u8bb0\u5f55\u3002'),
+      createConfigToggle('cloudflare_dns_proxied', 'Cloudflare \u4ee3\u7406', '\u662f\u5426\u5f00\u542f\u6a59\u4e91\u4ee3\u7406\uff1b\u4ec5\u5728\u4f60\u786e\u8ba4\u8be5\u8282\u70b9\u534f\u8bae\u652f\u6301 Cloudflare \u4ee3\u7406\u65f6\u5f00\u542f\u3002'),
+      createConfigInput('cloudflare_dns_ttl', 'Cloudflare TTL', '1', 'DNS \u8bb0\u5f55 TTL\uff0c1 \u8868\u793a\u81ea\u52a8\uff0c\u5176\u4ed6\u503c\u4e3a\u79d2\u3002', 'number')
     ].join('');
 
     var main = document.querySelector('main') || document.querySelector('[class*="overflow-y-auto"]') || document.body;
