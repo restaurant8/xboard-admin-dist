@@ -6,6 +6,10 @@
   var serverConfig = {};
   var refreshPending = false;
 
+  var CN_NODE = '\\u8282\\u70b9';
+  var CN_ADDRESS = '\\u5730\\u5740';
+  var CN_DOMAIN = '\\u57df\\u540d';
+
   function parseJson(value) {
     if (!value || typeof value !== 'string') return null;
     try {
@@ -144,8 +148,8 @@
   function findNodeDialog() {
     return Array.prototype.find.call(document.querySelectorAll('[role="dialog"]'), function (dialog) {
       var text = dialog.textContent || '';
-      var hasNodeText = /添加节点|编辑节点|新建节点|节点|Add Node|Edit Node|New Node|Node|Server/i.test(text);
-      var hasAddressText = /节点地址|地址|域名|Node Address|Server Host|Host/i.test(text);
+      var hasNodeText = new RegExp(CN_NODE + '|Add Node|Edit Node|New Node|Node|Server', 'i').test(text);
+      var hasAddressText = new RegExp(CN_ADDRESS + '|' + CN_DOMAIN + '|Node Address|Server Host|Host|Address|Domain', 'i').test(text);
       return hasNodeText && hasAddressText;
     }) || null;
   }
@@ -177,8 +181,8 @@
       '<label class="flex cursor-pointer items-start gap-3 font-mono text-xs">',
       '<input data-xb-dns-auto-sync-input type="checkbox" class="mt-0.5 h-4 w-4" />',
       '<span class="space-y-1">',
-      '<span class="block text-[12px] font-medium text-foreground/80">Cloudflare 自动解析</span>',
-      '<span class="block text-[11px] leading-relaxed text-muted-foreground">开启后，此节点的节点地址域名会自动解析到节点上报的公网 IP；IP 变化时也会自动更新。</span>',
+      '<span class="block text-[12px] font-medium text-foreground/80">Cloudflare DNS auto sync</span>',
+      '<span class="block text-[11px] leading-relaxed text-muted-foreground">When enabled, this node host DNS record is synced to the public IP reported by the node.</span>',
       '</span>',
       '</label>'
     ].join('');
@@ -211,7 +215,7 @@
 
     var block = createNodeSwitch(checked);
     var hostLabel = Array.prototype.find.call(dialog.querySelectorAll('label'), function (label) {
-      return /节点地址|地址|域名|Node Address|Server Host|Host/i.test(label.textContent || '');
+      return new RegExp(CN_ADDRESS + '|' + CN_DOMAIN + '|Node Address|Server Host|Host|Address|Domain', 'i').test(label.textContent || '');
     });
     var hostField = hostLabel && (hostLabel.closest('[class*="flex-1"]') || hostLabel.parentElement);
     var hostRow = hostField && hostField.parentElement;
@@ -226,7 +230,10 @@
 
   function shouldShowCloudflareConfig() {
     var text = document.body ? document.body.textContent || '' : '';
-    return /节点拉取动作轮询间隔|节点推送动作轮询间隔|流量统计模式|流量统计周期|系统配置|节点配置|Node Pull|Node Push|Traffic Stats|System Config|server_pull_interval|server_push_interval|traffic_stats_mode|traffic_stats_interval/i.test(text);
+    return new RegExp(
+      CN_NODE + '|\\u6d41\\u91cf\\u7edf\\u8ba1|\\u7cfb\\u7edf\\u914d\\u7f6e|Node Pull|Node Push|Traffic Stats|System Config|server_pull_interval|server_push_interval|traffic_stats_mode|traffic_stats_interval',
+      'i'
+    ).test(text);
   }
 
   function createConfigInput(key, label, placeholder, type) {
@@ -250,16 +257,16 @@
     block.className = 'mt-6 space-y-4 rounded-md border bg-card p-4';
     block.innerHTML = [
       '<div class="space-y-1">',
-      '<div class="text-base font-semibold">Cloudflare DNS 自动解析</div>',
-      '<div class="text-sm text-muted-foreground">这些是全局 Cloudflare 配置；每个节点仍需在创建/编辑节点时单独开启自动解析。</div>',
+      '<div class="text-base font-semibold">Cloudflare DNS auto sync</div>',
+      '<div class="text-sm text-muted-foreground">Global Cloudflare settings. Each node still needs DNS auto sync enabled separately in the node form.</div>',
       '</div>',
       createConfigInput('cloudflare_dns_api_token', 'API Token', 'Cloudflare API Token', 'password'),
       createConfigInput('cloudflare_dns_zone_id', 'Zone ID', 'Cloudflare Zone ID'),
       '<label class="flex items-center gap-3 text-sm">',
       '<input data-xb-cf-config="cloudflare_dns_proxied" type="checkbox" class="h-4 w-4" ' + (asBool(serverConfig.cloudflare_dns_proxied) ? 'checked' : '') + ' />',
-      '<span>开启 Cloudflare 代理（橙云）</span>',
+      '<span>Enable Cloudflare proxy</span>',
       '</label>',
-      createConfigInput('cloudflare_dns_ttl', 'TTL', '1 表示自动', 'number')
+      createConfigInput('cloudflare_dns_ttl', 'TTL', '1 means automatic', 'number')
     ].join('');
 
     var main = document.querySelector('main') || document.querySelector('[class*="overflow-y-auto"]') || document.body;
