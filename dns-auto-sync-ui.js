@@ -47,7 +47,7 @@
     if (data.server) data = data.server;
     if (Object.prototype.hasOwnProperty.call(data, 'cloudflare_dns_zone_id')) {
       serverConfig = data;
-      refreshCloudflareConfigBlock(true);
+      refreshCloudflareConfigBlock(false);
     }
   }
 
@@ -239,9 +239,31 @@
   function shouldShowCloudflareConfig() {
     var text = document.body ? document.body.textContent || '' : '';
     return new RegExp(
-      CN_NODE + '|\\u6d41\\u91cf\\u7edf\\u8ba1|\\u7cfb\\u7edf\\u914d\\u7f6e|Node Pull|Node Push|Traffic Stats|System Config|server_pull_interval|server_push_interval|traffic_stats_mode|traffic_stats_interval',
+      '\\u8282\\u70b9\\u62c9\\u53d6|\\u8282\\u70b9\\u63a8\\u9001|\\u6d41\\u91cf\\u7edf\\u8ba1\\u6a21\\u5f0f|\\u6d41\\u91cf\\u7edf\\u8ba1\\u5468\\u671f|Node Pull|Node Push|Traffic Stats|server_pull_interval|server_push_interval|traffic_stats_mode|traffic_stats_interval',
       'i'
     ).test(text);
+  }
+
+  function findCloudflareConfigAnchor() {
+    var pattern = /(\u6d41\u91cf\u7edf\u8ba1\u5468\u671f|\u6d41\u91cf\u7edf\u8ba1\u6a21\u5f0f|traffic_stats_interval|traffic_stats_mode|Traffic Stats)/i;
+    var candidates = Array.prototype.slice.call(document.querySelectorAll('label,p,span,div'));
+    var label = candidates.find(function (element) {
+      var text = (element.textContent || '').trim();
+      return text && text.length < 120 && pattern.test(text);
+    });
+    if (!label) return null;
+
+    var current = label;
+    while (current && current !== document.body) {
+      var text = current.textContent || '';
+      var hasField = current.querySelector && current.querySelector('input,select,textarea,[role="combobox"],button');
+      if (hasField && pattern.test(text)) {
+        return current;
+      }
+      current = current.parentElement;
+    }
+
+    return label.parentElement || null;
   }
 
   function escapeHtml(value) {
@@ -409,8 +431,17 @@
 
   function refreshCloudflareConfigBlock(force) {
     if (!document.body) return;
-    if (!force && !shouldShowCloudflareConfig()) return;
-    if (document.querySelector('[data-xb-cloudflare-config]')) return;
+    var existing = document.querySelector('[data-xb-cloudflare-config]');
+    if (!force && !shouldShowCloudflareConfig()) {
+      if (existing) existing.remove();
+      return;
+    }
+    if (existing) return;
+    var anchor = findCloudflareConfigAnchor();
+    if (!anchor || !anchor.parentElement) {
+      if (existing) existing.remove();
+      return;
+    }
 
     var block = document.createElement('div');
     block.dataset.xbCloudflareConfig = '1';
@@ -426,8 +457,7 @@
       createConfigInput('cloudflare_dns_ttl', 'Cloudflare TTL', '1', 'DNS \u8bb0\u5f55 TTL\uff0c1 \u8868\u793a\u81ea\u52a8\uff0c\u5176\u4ed6\u503c\u4e3a\u79d2\u3002', 'number')
     ].join('');
 
-    var main = document.querySelector('main') || document.querySelector('[class*="overflow-y-auto"]') || document.body;
-    main.appendChild(block);
+    anchor.insertAdjacentElement('afterend', block);
   }
 
   function readCloudflareConfigValues() {
