@@ -13,6 +13,11 @@
   var CF_TITLE = 'Cloudflare DNS \u81ea\u52a8\u540c\u6b65';
   var CF_GLOBAL_DESC = '\u914d\u7f6e\u5168\u5c40 Cloudflare DNS \u4fe1\u606f\uff1b\u6bcf\u4e2a\u8282\u70b9\u4ecd\u9700\u5728\u521b\u5efa\u6216\u7f16\u8f91\u8282\u70b9\u65f6\u5355\u72ec\u5f00\u542f\u3002';
   var CF_NODE_DESC = '\u5f00\u542f\u540e\uff0c\u8be5\u8282\u70b9\u57df\u540d\u4f1a\u81ea\u52a8\u89e3\u6790\u5230\u8282\u70b9\u4e0a\u62a5\u7684\u516c\u7f51 IP\uff0cIP \u53d8\u5316\u65f6\u4e5f\u4f1a\u81ea\u52a8\u66f4\u65b0\u3002';
+  var CF_ZONE_LABEL = 'Cloudflare Zone';
+  var CF_ZONE_REMARK = '\u5907\u6ce8';
+  var CF_ZONE_EMPTY = '\u8bf7\u5148\u5728\u7cfb\u7edf\u914d\u7f6e\u6dfb\u52a0 Zone';
+  var CF_ZONE_ADD = '\u6dfb\u52a0 Zone';
+  var CF_ZONE_REMOVE = '\u5220\u9664';
   var NODE_INSTALL_LABEL = '\u5b89\u88c5\u547d\u4ee4';
   var NODE_INSTALL_COPIED = '\u5b89\u88c5\u547d\u4ee4\u5df2\u590d\u5236';
   var NODE_INSTALL_MISSING = '\u7f3a\u5c11\u5b89\u88c5\u547d\u4ee4';
@@ -45,9 +50,13 @@
     var data = payload && payload.data ? payload.data : payload;
     if (!data) return;
     if (data.server) data = data.server;
-    if (Object.prototype.hasOwnProperty.call(data, 'cloudflare_dns_zone_id')) {
+    if (
+      Object.prototype.hasOwnProperty.call(data, 'cloudflare_dns_zone_id')
+      || Object.prototype.hasOwnProperty.call(data, 'cloudflare_dns_zones')
+    ) {
       serverConfig = data;
-      refreshCloudflareConfigBlock(false);
+      refreshCloudflareConfigBlock(true);
+      refreshNodeSwitches();
     }
   }
 
@@ -116,6 +125,11 @@
       payload.dns_auto_sync = value;
     }
 
+    var zoneValue = currentNodeZoneValue(payload);
+    if (zoneValue !== null) {
+      payload.dns_cloudflare_zone_id = zoneValue;
+    }
+
     return JSON.stringify(payload);
   }
 
@@ -136,6 +150,28 @@
 
     if (checkbox) {
       return checkbox.checked;
+    }
+
+    return null;
+  }
+
+  function currentNodeZoneValue(payload) {
+    var dialog = findNodeDialog();
+    var select = dialog && dialog.querySelector('[data-xb-dns-zone-select]');
+    if (select && select.dataset.touched === '1') {
+      return select.value;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(payload, 'dns_cloudflare_zone_id')) {
+      return String(payload.dns_cloudflare_zone_id || '').trim();
+    }
+
+    if (payload.id != null && nodes.has(String(payload.id))) {
+      return String(nodes.get(String(payload.id)).dns_cloudflare_zone_id || '').trim();
+    }
+
+    if (select) {
+      return select.value;
     }
 
     return null;
@@ -181,10 +217,11 @@
     return matched;
   }
 
-  function createNodeSwitch(checked) {
+  function createNodeSwitch(checked, zoneId) {
     var wrap = document.createElement('div');
     wrap.dataset.xbDnsAutoSync = '1';
     wrap.className = 'rounded-md border bg-muted/20 px-3 py-2';
+    zoneId = String(zoneId || defaultCloudflareZoneId() || '').trim();
     wrap.innerHTML = [
       '<label class="flex cursor-pointer items-start gap-3 font-mono text-xs">',
       '<input data-xb-dns-auto-sync-input type="checkbox" class="mt-0.5 h-4 w-4" />',
@@ -192,7 +229,12 @@
       '<span class="block text-[12px] font-medium text-foreground/80">' + CF_TITLE + '</span>',
       '<span class="block text-[11px] leading-relaxed text-muted-foreground">' + CF_NODE_DESC + '</span>',
       '</span>',
-      '</label>'
+      '</label>',
+      '<div class="mt-3 space-y-1">',
+      '<label class="block text-[12px] font-medium text-foreground/80">' + CF_ZONE_LABEL + '</label>',
+      '<select data-xb-dns-zone-select class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-xs">' + renderZoneOptions(zoneId) + '</select>',
+      '<p class="text-[11px] leading-relaxed text-muted-foreground">\u8be5\u8282\u70b9\u4f7f\u7528\u54ea\u4e2a Cloudflare Zone \u66f4\u65b0 DNS \u8bb0\u5f55\u3002</p>',
+      '</div>'
     ].join('');
 
     var input = wrap.querySelector('input');
@@ -201,6 +243,14 @@
     input.addEventListener('change', function () {
       input.dataset.touched = '1';
     });
+    var select = wrap.querySelector('[data-xb-dns-zone-select]');
+    syncNodeZoneSelect(select, zoneId);
+    if (select) {
+      select.dataset.touched = '0';
+      select.addEventListener('change', function () {
+        select.dataset.touched = '1';
+      });
+    }
 
     return wrap;
   }
@@ -212,16 +262,21 @@
     var existing = dialog.querySelector('[data-xb-dns-auto-sync]');
     var matched = findMatchingNode(dialog);
     var checked = matched ? asBool(matched.dns_auto_sync) : false;
+    var zoneId = matched ? String(matched.dns_cloudflare_zone_id || '').trim() : '';
+    if (!zoneId) {
+      zoneId = defaultCloudflareZoneId();
+    }
 
     if (existing) {
       var input = existing.querySelector('[data-xb-dns-auto-sync-input]');
       if (input && input.dataset.touched !== '1') {
         input.checked = checked;
       }
+      syncNodeZoneSelect(existing.querySelector('[data-xb-dns-zone-select]'), zoneId);
       return;
     }
 
-    var block = createNodeSwitch(checked);
+    var block = createNodeSwitch(checked, zoneId);
     var hostLabel = Array.prototype.find.call(dialog.querySelectorAll('label'), function (label) {
       return new RegExp(CN_ADDRESS + '|' + CN_DOMAIN + '|Node Address|Server Host|Host|Address|Domain', 'i').test(label.textContent || '');
     });
@@ -272,6 +327,88 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  function escapeAttr(value) {
+    return escapeHtml(value).replace(/'/g, '&#39;');
+  }
+
+  function normalizeCloudflareZones(value) {
+    var list = value;
+    if (typeof list === 'string') {
+      list = parseJson(list) || [];
+    }
+    if (!Array.isArray(list)) {
+      list = [];
+    }
+
+    var result = [];
+    var seen = {};
+    list.forEach(function (zone) {
+      if (!zone) return;
+      var zoneId = String(zone.zone_id || zone.id || '').trim();
+      if (!zoneId || seen[zoneId]) return;
+      seen[zoneId] = true;
+      result.push({
+        zone_id: zoneId,
+        remark: String(zone.remark || zone.name || '').trim()
+      });
+    });
+
+    var legacyZoneId = String(serverConfig.cloudflare_dns_zone_id || '').trim();
+    if (legacyZoneId && !seen[legacyZoneId]) {
+      result.unshift({
+        zone_id: legacyZoneId,
+        remark: 'default'
+      });
+    }
+
+    return result;
+  }
+
+  function cloudflareZones() {
+    return normalizeCloudflareZones(serverConfig.cloudflare_dns_zones);
+  }
+
+  function defaultCloudflareZoneId() {
+    var zones = cloudflareZones();
+    return zones.length ? zones[0].zone_id : String(serverConfig.cloudflare_dns_zone_id || '').trim();
+  }
+
+  function cloudflareZoneLabel(zone) {
+    var remark = String(zone.remark || '').trim();
+    return remark ? remark + ' | ' + zone.zone_id : zone.zone_id;
+  }
+
+  function renderZoneOptions(selectedZone) {
+    var zones = cloudflareZones();
+    selectedZone = String(selectedZone || '').trim();
+    if (!selectedZone) {
+      selectedZone = defaultCloudflareZoneId();
+    }
+    if (!zones.length) {
+      return '<option value="">' + CF_ZONE_EMPTY + '</option>';
+    }
+
+    var hasSelected = false;
+    var html = zones.map(function (zone) {
+      var selected = zone.zone_id === selectedZone;
+      if (selected) hasSelected = true;
+      return '<option value="' + escapeAttr(zone.zone_id) + '"' + (selected ? ' selected' : '') + '>' + escapeHtml(cloudflareZoneLabel(zone)) + '</option>';
+    }).join('');
+
+    if (selectedZone && !hasSelected) {
+      html = '<option value="' + escapeAttr(selectedZone) + '" selected>' + escapeHtml(selectedZone + ' (\u672a\u5728\u5217\u8868\u4e2d)') + '</option>' + html;
+    }
+
+    return html;
+  }
+
+  function syncNodeZoneSelect(select, selectedZone) {
+    if (!select || select.dataset.touched === '1') return;
+    select.innerHTML = renderZoneOptions(selectedZone);
+    select.disabled = cloudflareZones().length === 0;
+    select.value = String(selectedZone || defaultCloudflareZoneId() || '').trim();
   }
 
   function findNodeByText(text) {
@@ -417,6 +554,62 @@
     ].join('');
   }
 
+  function createConfigZoneRow(zone) {
+    zone = zone || {};
+    return [
+      '<div data-xb-cf-zone-row class="grid gap-2 rounded-md border bg-muted/10 p-3" style="grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto;">',
+      '<input data-xb-cf-zone-remark type="text" value="' + escapeAttr(zone.remark || '') + '" placeholder="' + CF_ZONE_REMARK + '" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />',
+      '<input data-xb-cf-zone-id type="text" value="' + escapeAttr(zone.zone_id || '') + '" placeholder="Cloudflare Zone ID" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />',
+      '<button data-xb-cf-zone-remove type="button" class="h-10 rounded-md border px-3 text-sm">' + CF_ZONE_REMOVE + '</button>',
+      '</div>'
+    ].join('');
+  }
+
+  function createConfigZoneList() {
+    var zones = cloudflareZones();
+    if (!zones.length) {
+      zones = [{ zone_id: '', remark: '' }];
+    }
+
+    return [
+      '<div class="space-y-2">',
+      '<div class="flex items-center justify-between gap-3">',
+      '<label class="block text-sm font-medium">' + CF_ZONE_LABEL + '</label>',
+      '<button data-xb-cf-zone-add type="button" class="h-9 rounded-md border px-3 text-sm">' + CF_ZONE_ADD + '</button>',
+      '</div>',
+      '<div data-xb-cf-zone-list class="space-y-2">',
+      zones.map(createConfigZoneRow).join(''),
+      '</div>',
+      '<p class="text-xs leading-relaxed text-muted-foreground">\u53ef\u914d\u7f6e\u591a\u4e2a Cloudflare Zone\uff0c\u5907\u6ce8\u7528\u4e8e\u5728\u8282\u70b9\u521b\u5efa\u6216\u7f16\u8f91\u65f6\u8bc6\u522b\u4e0d\u540c\u57df\u540d\u3002\u7b2c\u4e00\u4e2a Zone \u4f1a\u540c\u6b65\u5199\u5165\u65e7\u914d\u7f6e\u4ee5\u4fdd\u6301\u517c\u5bb9\u3002</p>',
+      '</div>'
+    ].join('');
+  }
+
+  function bindCloudflareZoneList(block) {
+    var list = block.querySelector('[data-xb-cf-zone-list]');
+    var add = block.querySelector('[data-xb-cf-zone-add]');
+    if (!list || !add) return;
+
+    add.addEventListener('click', function () {
+      list.insertAdjacentHTML('beforeend', createConfigZoneRow({ zone_id: '', remark: '' }));
+    });
+
+    block.addEventListener('click', function (event) {
+      var remove = event.target && event.target.closest && event.target.closest('[data-xb-cf-zone-remove]');
+      if (!remove) return;
+      var row = remove.closest('[data-xb-cf-zone-row]');
+      if (!row) return;
+      var rows = list.querySelectorAll('[data-xb-cf-zone-row]');
+      if (rows.length <= 1) {
+        row.querySelectorAll('input').forEach(function (input) {
+          input.value = '';
+        });
+        return;
+      }
+      row.remove();
+    });
+  }
+
   function createConfigToggle(key, label, description) {
     return [
       '<div class="space-y-2">',
@@ -432,9 +625,13 @@
   function refreshCloudflareConfigBlock(force) {
     if (!document.body) return;
     var existing = document.querySelector('[data-xb-cloudflare-config]');
-    if (!force && !shouldShowCloudflareConfig()) {
+    if (!shouldShowCloudflareConfig()) {
       if (existing) existing.remove();
       return;
+    }
+    if (existing && force) {
+      existing.remove();
+      existing = null;
     }
     if (existing) return;
     var anchor = findCloudflareConfigAnchor();
@@ -452,11 +649,12 @@
       '<div class="text-sm text-muted-foreground">' + CF_GLOBAL_DESC + '</div>',
       '</div>',
       createConfigInput('cloudflare_dns_api_token', 'Cloudflare API Token', 'Cloudflare API Token', '\u7528\u4e8e\u8c03\u7528 Cloudflare DNS API\uff0c\u5efa\u8bae\u53ea\u6388\u4e88\u76ee\u6807 Zone \u7684 DNS \u7f16\u8f91\u6743\u9650\u3002', 'password'),
-      createConfigInput('cloudflare_dns_zone_id', 'Cloudflare Zone ID', 'Cloudflare Zone ID', '\u57df\u540d\u6240\u5728\u7684 Cloudflare Zone ID\uff0c\u7528\u6765\u5b9a\u4f4d\u8981\u66f4\u65b0\u7684 DNS \u8bb0\u5f55\u3002'),
+      createConfigZoneList(),
       createConfigToggle('cloudflare_dns_proxied', 'Cloudflare \u4ee3\u7406', '\u662f\u5426\u5f00\u542f\u6a59\u4e91\u4ee3\u7406\uff1b\u4ec5\u5728\u4f60\u786e\u8ba4\u8be5\u8282\u70b9\u534f\u8bae\u652f\u6301 Cloudflare \u4ee3\u7406\u65f6\u5f00\u542f\u3002'),
       createConfigInput('cloudflare_dns_ttl', 'Cloudflare TTL', '1', 'DNS \u8bb0\u5f55 TTL\uff0c1 \u8868\u793a\u81ea\u52a8\uff0c\u5176\u4ed6\u503c\u4e3a\u79d2\u3002', 'number')
     ].join('');
 
+    bindCloudflareZoneList(block);
     anchor.insertAdjacentElement('afterend', block);
   }
 
@@ -467,6 +665,21 @@
       if (!key) return;
       result[key] = input.type === 'checkbox' ? input.checked : input.value;
     });
+
+    var zones = [];
+    document.querySelectorAll('[data-xb-cf-zone-row]').forEach(function (row) {
+      var zoneInput = row.querySelector('[data-xb-cf-zone-id]');
+      var remarkInput = row.querySelector('[data-xb-cf-zone-remark]');
+      var zoneId = zoneInput ? String(zoneInput.value || '').trim() : '';
+      if (!zoneId) return;
+      zones.push({
+        zone_id: zoneId,
+        remark: remarkInput ? String(remarkInput.value || '').trim() : ''
+      });
+    });
+    result.cloudflare_dns_zones = zones;
+    result.cloudflare_dns_zone_id = zones.length ? zones[0].zone_id : '';
+
     if (!result.cloudflare_dns_ttl) {
       result.cloudflare_dns_ttl = 1;
     }
