@@ -35,7 +35,7 @@
     if (data.server) data = data.server;
     if (Object.prototype.hasOwnProperty.call(data, 'cloudflare_dns_zone_id')) {
       serverConfig = data;
-      refreshCloudflareConfigBlock();
+      refreshCloudflareConfigBlock(true);
     }
   }
 
@@ -144,7 +144,9 @@
   function findNodeDialog() {
     return Array.prototype.find.call(document.querySelectorAll('[role="dialog"]'), function (dialog) {
       var text = dialog.textContent || '';
-      return /添加节点|编辑节点|新建节点|Add Node|Edit Node|New Node|节点地址|Node Address|Server Host/i.test(text);
+      var hasNodeText = /添加节点|编辑节点|新建节点|节点|Add Node|Edit Node|New Node|Node|Server/i.test(text);
+      var hasAddressText = /节点地址|地址|域名|Node Address|Server Host|Host/i.test(text);
+      return hasNodeText && hasAddressText;
     }) || null;
   }
 
@@ -209,7 +211,7 @@
 
     var block = createNodeSwitch(checked);
     var hostLabel = Array.prototype.find.call(dialog.querySelectorAll('label'), function (label) {
-      return /节点地址|Node Address|Server Host|Host/i.test(label.textContent || '');
+      return /节点地址|地址|域名|Node Address|Server Host|Host/i.test(label.textContent || '');
     });
     var hostField = hostLabel && (hostLabel.closest('[class*="flex-1"]') || hostLabel.parentElement);
     var hostRow = hostField && hostField.parentElement;
@@ -224,7 +226,7 @@
 
   function shouldShowCloudflareConfig() {
     var text = document.body ? document.body.textContent || '' : '';
-    return /节点拉取动作轮询间隔|节点推送动作轮询间隔|Node Pull|Node Push|server_pull_interval|server_push_interval/i.test(text);
+    return /节点拉取动作轮询间隔|节点推送动作轮询间隔|流量统计模式|流量统计周期|系统配置|节点配置|Node Pull|Node Push|Traffic Stats|System Config|server_pull_interval|server_push_interval|traffic_stats_mode|traffic_stats_interval/i.test(text);
   }
 
   function createConfigInput(key, label, placeholder, type) {
@@ -238,8 +240,9 @@
     ].join('');
   }
 
-  function refreshCloudflareConfigBlock() {
-    if (!document.body || !shouldShowCloudflareConfig()) return;
+  function refreshCloudflareConfigBlock(force) {
+    if (!document.body) return;
+    if (!force && !shouldShowCloudflareConfig()) return;
     if (document.querySelector('[data-xb-cloudflare-config]')) return;
 
     var block = document.createElement('div');
@@ -282,7 +285,7 @@
     window.requestAnimationFrame(function () {
       refreshPending = false;
       refreshNodeSwitches();
-      refreshCloudflareConfigBlock();
+      refreshCloudflareConfigBlock(false);
     });
   }
 
