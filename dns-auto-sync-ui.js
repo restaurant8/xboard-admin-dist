@@ -5,6 +5,7 @@
   var nodes = new Map();
   var serverConfig = {};
   var refreshPending = false;
+  var lastActionNodeId = null;
 
   var CN_NODE = '\\u8282\\u70b9';
   var CN_ADDRESS = '\\u5730\\u5740';
@@ -12,6 +13,9 @@
   var CF_TITLE = 'Cloudflare DNS \u81ea\u52a8\u540c\u6b65';
   var CF_GLOBAL_DESC = '\u914d\u7f6e\u5168\u5c40 Cloudflare DNS \u4fe1\u606f\uff1b\u6bcf\u4e2a\u8282\u70b9\u4ecd\u9700\u5728\u521b\u5efa\u6216\u7f16\u8f91\u8282\u70b9\u65f6\u5355\u72ec\u5f00\u542f\u3002';
   var CF_NODE_DESC = '\u5f00\u542f\u540e\uff0c\u8be5\u8282\u70b9\u57df\u540d\u4f1a\u81ea\u52a8\u89e3\u6790\u5230\u8282\u70b9\u4e0a\u62a5\u7684\u516c\u7f51 IP\uff0cIP \u53d8\u5316\u65f6\u4e5f\u4f1a\u81ea\u52a8\u66f4\u65b0\u3002';
+  var NODE_INSTALL_LABEL = '\u5b89\u88c5 xboard-node';
+  var NODE_INSTALL_COPIED = '\u5b89\u88c5\u547d\u4ee4\u5df2\u590d\u5236';
+  var NODE_INSTALL_MISSING = '\u7f3a\u5c11\u5b89\u88c5\u547d\u4ee4';
 
   function parseJson(value) {
     if (!value || typeof value !== 'string') return null;
@@ -34,6 +38,7 @@
       nodes.set(String(node.id), node);
     });
     refreshNodeSwitches();
+    refreshNodeInstallMenuItems();
   }
 
   function captureServerConfig(payload) {
@@ -247,6 +252,137 @@
       .replace(/"/g, '&quot;');
   }
 
+  function findNodeByText(text) {
+    var match;
+    var idPattern = /#\s*(\d+)/g;
+    while ((match = idPattern.exec(text || ''))) {
+      if (nodes.has(match[1])) {
+        return nodes.get(match[1]);
+      }
+    }
+
+    var found = null;
+    nodes.forEach(function (node) {
+      if (found || !node) return;
+      var name = String(node.name || '').trim();
+      var host = String(node.host || '').trim();
+      if (name && text.indexOf(name) !== -1 && (!host || text.indexOf(host) !== -1)) {
+        found = node;
+      }
+    });
+    return found;
+  }
+
+  function captureActionNodeFromEvent(event) {
+    var control = event.target && event.target.closest && event.target.closest('button,[role="button"]');
+    if (!control) return;
+
+    var current = control;
+    for (var depth = 0; current && current !== document.body && depth < 8; depth += 1) {
+      if (current.getAttribute && current.getAttribute('role') === 'menu') return;
+      var node = findNodeByText(current.textContent || '');
+      if (node && node.id != null) {
+        lastActionNodeId = String(node.id);
+        return;
+      }
+      current = current.parentElement;
+    }
+  }
+
+  function fallbackCopy(text) {
+    var input = document.createElement('textarea');
+    input.value = text;
+    input.setAttribute('readonly', '');
+    input.style.position = 'fixed';
+    input.style.left = '-9999px';
+    input.style.top = '0';
+    document.body.appendChild(input);
+    input.select();
+    var ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } catch (e) {
+      ok = false;
+    }
+    input.remove();
+    return ok;
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).then(function () {
+        return true;
+      }).catch(function () {
+        return fallbackCopy(text);
+      });
+    }
+    return Promise.resolve(fallbackCopy(text));
+  }
+
+  function flashMenuItem(item, text) {
+    if (!item) return;
+    var original = item.innerHTML;
+    item.textContent = text;
+    window.setTimeout(function () {
+      if (item.isConnected) {
+        item.innerHTML = original;
+      }
+    }, 1200);
+  }
+
+  function createNodeInstallMenuItem(template, node) {
+    var item = template ? template.cloneNode(false) : document.createElement('div');
+    item.dataset.xbNodeInstallCommand = '1';
+    item.setAttribute('role', 'menuitem');
+    item.setAttribute('tabindex', '-1');
+    item.className = template && template.className
+      ? template.className
+      : 'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent';
+    item.innerHTML = [
+      '<div class="flex w-full items-center">',
+      '<span class="mr-2 inline-flex size-4 items-center justify-center" aria-hidden="true">&#x21e9;</span>',
+      '<span>' + NODE_INSTALL_LABEL + '</span>',
+      '</div>'
+    ].join('');
+
+    item.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      var command = node && (node.install_command || node.installCommand);
+      if (!command) {
+        flashMenuItem(item, NODE_INSTALL_MISSING);
+        return;
+      }
+
+      copyText(command).then(function (ok) {
+        flashMenuItem(item, ok ? NODE_INSTALL_COPIED : NODE_INSTALL_MISSING);
+      });
+    }, true);
+
+    return item;
+  }
+
+  function refreshNodeInstallMenuItems() {
+    if (!lastActionNodeId || !nodes.has(lastActionNodeId)) return;
+    var node = nodes.get(lastActionNodeId);
+
+    document.querySelectorAll('[role="menu"]').forEach(function (menu) {
+      var text = menu.textContent || '';
+      if (menu.querySelector('[data-xb-node-install-command]')) return;
+      if (!(/\u7f16\u8f91|Edit/i.test(text) && /\u590d\u5236|Copy/i.test(text) && /\u5220\u9664|Delete/i.test(text))) return;
+
+      var menuItems = Array.prototype.slice.call(menu.querySelectorAll('[role="menuitem"]'));
+      var copyItem = menuItems.find(function (item) {
+        return /\u590d\u5236|^Copy$/i.test((item.textContent || '').trim());
+      }) || menuItems[0];
+      if (!copyItem) return;
+
+      var item = createNodeInstallMenuItem(copyItem, node);
+      copyItem.insertAdjacentElement('afterend', item);
+    });
+  }
+
   function createConfigInput(key, label, placeholder, description, type) {
     var value = serverConfig[key];
     if (value == null) value = '';
@@ -313,6 +449,7 @@
     window.requestAnimationFrame(function () {
       refreshPending = false;
       refreshNodeSwitches();
+      refreshNodeInstallMenuItems();
       refreshCloudflareConfigBlock(false);
     });
   }
@@ -325,6 +462,9 @@
   } else {
     scheduleRefresh();
   }
+
+  document.addEventListener('pointerdown', captureActionNodeFromEvent, true);
+  document.addEventListener('click', captureActionNodeFromEvent, true);
 
   new MutationObserver(scheduleRefresh).observe(document.documentElement, {
     childList: true,
