@@ -192,9 +192,19 @@
   function findNodeDialog() {
     return Array.prototype.find.call(document.querySelectorAll('[role="dialog"]'), function (dialog) {
       var text = dialog.textContent || '';
+      if (/\u5173\u8054\u8282\u70b9|Associated Nodes|Linked Nodes|Machine Detail|Server Machine/i.test(text)) {
+        return false;
+      }
       var hasNodeText = new RegExp(CN_NODE + '|Add Node|Edit Node|New Node|Node|Server', 'i').test(text);
       var hasAddressText = new RegExp(CN_ADDRESS + '|' + CN_DOMAIN + '|Node Address|Server Host|Host|Address|Domain', 'i').test(text);
-      return hasNodeText && hasAddressText;
+      var hasEditableAddressField = Array.prototype.some.call(dialog.querySelectorAll('label'), function (label) {
+        if (!new RegExp(CN_ADDRESS + '|' + CN_DOMAIN + '|Node Address|Server Host|Host|Address|Domain', 'i').test(label.textContent || '')) {
+          return false;
+        }
+        var field = label.closest('[class*="flex-1"]') || label.parentElement;
+        return !!(field && field.querySelector('input,textarea,[role="combobox"]'));
+      });
+      return hasNodeText && hasAddressText && hasEditableAddressField;
     }) || null;
   }
 
