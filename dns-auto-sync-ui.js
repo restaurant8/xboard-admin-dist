@@ -5,6 +5,8 @@
   var nodes = new Map();
   var serverConfig = {};
   var refreshPending = false;
+  var serverConfigRequested = false;
+  var serverConfigLoading = false;
   var lastActionNodeId = null;
 
   var CN_NODE = '\\u8282\\u70b9';
@@ -58,6 +60,42 @@
       refreshCloudflareConfigBlock(true);
       refreshNodeSwitches();
     }
+  }
+
+  function adminApiBase() {
+    var parts = String(window.location.pathname || '')
+      .split('/')
+      .filter(Boolean);
+    var adminPath = parts[0] || '';
+    if (!adminPath || adminPath === 'assets' || adminPath === 'api') {
+      return '';
+    }
+    return '/api/v2/' + encodeURIComponent(adminPath);
+  }
+
+  function requestServerConfig() {
+    if (serverConfigRequested || serverConfigLoading || cloudflareZones().length > 0) return;
+    var base = adminApiBase();
+    if (!base || !window.fetch) return;
+
+    serverConfigLoading = true;
+    window.fetch(base + '/config/fetch?key=server', {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    }).then(function (response) {
+      serverConfigRequested = true;
+      return response.clone().text();
+    }).then(function (text) {
+      captureServerConfig(parseJson(text));
+    }).catch(function () {
+      serverConfigRequested = true;
+    }).finally(function () {
+      serverConfigLoading = false;
+    });
   }
 
   function patchFetch() {
@@ -268,6 +306,8 @@
   function refreshNodeSwitches() {
     var dialog = findNodeDialog();
     if (!dialog) return;
+
+    requestServerConfig();
 
     var existing = dialog.querySelector('[data-xb-dns-auto-sync]');
     var matched = findMatchingNode(dialog);
