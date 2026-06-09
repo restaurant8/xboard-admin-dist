@@ -7,6 +7,7 @@
   var refreshPending = false;
   var serverConfigRequested = false;
   var serverConfigLoading = false;
+  var serverConfigLastRequestAt = 0;
   var lastActionNodeId = null;
 
   var CN_NODE = '\\u8282\\u70b9';
@@ -23,6 +24,12 @@
   var NODE_INSTALL_LABEL = '\u5b89\u88c5\u547d\u4ee4';
   var NODE_INSTALL_COPIED = '\u5b89\u88c5\u547d\u4ee4\u5df2\u590d\u5236';
   var NODE_INSTALL_MISSING = '\u7f3a\u5c11\u5b89\u88c5\u547d\u4ee4';
+  var VLESS_WS_TITLE = 'VLESS WebSocket \u5feb\u6377\u914d\u7f6e';
+  var VLESS_WS_DESC = '\u4ec5\u5728 VLESS + WebSocket \u65f6\u751f\u6548\uff1b\u4fdd\u5b58\u540e\u4f1a\u5199\u5165 protocol_settings.network_settings\u3002';
+  var VLESS_WS_PATH_LABEL = 'WebSocket Path';
+  var VLESS_WS_PATH_HINT = '\u5fc5\u987b\u4ee5 / \u5f00\u5934\uff0c\u4f8b\u5982 /ws\u3002';
+  var VLESS_WS_HOST_LABEL = 'WebSocket Host';
+  var VLESS_WS_HOST_HINT = '\u901a\u5e38\u586b\u8282\u70b9\u57df\u540d\uff0c\u548c SNI \u4fdd\u6301\u4e00\u81f4\u3002';
 
   function parseJson(value) {
     if (!value || typeof value !== 'string') return null;
@@ -45,6 +52,7 @@
       nodes.set(String(node.id), node);
     });
     refreshNodeSwitches();
+    refreshVlessWsSettings();
     refreshNodeInstallMenuItems();
   }
 
@@ -59,6 +67,7 @@
       serverConfig = data;
       refreshCloudflareConfigBlock(true);
       refreshNodeSwitches();
+      refreshVlessWsSettings();
     }
   }
 
@@ -73,12 +82,16 @@
     return '/api/v2/' + encodeURIComponent(adminPath);
   }
 
-  function requestServerConfig() {
-    if (serverConfigRequested || serverConfigLoading || cloudflareZones().length > 0) return;
+  function requestServerConfig(force) {
+    if (serverConfigLoading) return;
+    if (!force && cloudflareZones().length > 0) return;
+    var now = Date.now();
+    if (!force && serverConfigRequested && now - serverConfigLastRequestAt < 10000) return;
     var base = adminApiBase();
     if (!base || !window.fetch) return;
 
     serverConfigLoading = true;
+    serverConfigLastRequestAt = now;
     window.fetch(base + '/config/fetch?key=server', {
       method: 'GET',
       credentials: 'same-origin',
@@ -157,6 +170,8 @@
   function patchNodeSaveBody(body) {
     var payload = parseJson(body);
     if (!payload) return body;
+
+    applyVlessWsSettings(payload);
 
     var value = currentNodeSwitchValue(payload);
     if (value !== null) {
@@ -263,6 +278,171 @@
       }
     });
     return matched;
+  }
+
+  function normalizeObject(value) {
+    if (!value) return {};
+    if (typeof value === 'string') {
+      return parseJson(value) || {};
+    }
+    return typeof value === 'object' && !Array.isArray(value) ? value : {};
+  }
+
+  function protocolSettingsFromNode(node) {
+    return normalizeObject(node && node.protocol_settings);
+  }
+
+  function findFieldByLabel(dialog, pattern) {
+    if (!dialog) return null;
+    var labels = Array.prototype.slice.call(dialog.querySelectorAll('label'));
+    var label = labels.find(function (item) {
+      return pattern.test(item.textContent || '');
+    });
+    if (!label) return null;
+    return label.closest('[class*="space-y"],[class*="flex-1"],[class*="grid"]') || label.parentElement;
+  }
+
+  function isVlessNodeDialog(dialog, matched) {
+    if (matched && String(matched.type || '').toLowerCase() === 'vless') return true;
+    return /VLESS/i.test(dialog ? dialog.textContent || '' : '');
+  }
+
+  function isWebsocketNodeDialog(dialog, matched) {
+    var settings = protocolSettingsFromNode(matched);
+    if (String(settings.network || '').toLowerCase() === 'ws') return true;
+    var field = findFieldByLabel(dialog, /\u4f20\u8f93\u534f\u8bae|Network|Transport/i);
+    var text = field ? field.textContent || '' : '';
+    return /Web\s*socket|websocket|\bws\b/i.test(text);
+  }
+
+  function normalizeWsPath(value) {
+    value = String(value || '').trim();
+    if (!value) return '';
+    return value.charAt(0) === '/' ? value : '/' + value;
+  }
+
+  function vlessWsValuesFromNode(node) {
+    var settings = protocolSettingsFromNode(node);
+    var networkSettings = normalizeObject(settings.network_settings);
+    return {
+      path: String(networkSettings.path || '').trim(),
+      host: String(
+        (networkSettings.headers && networkSettings.headers.Host)
+        || networkSettings.host
+        || ''
+      ).trim()
+    };
+  }
+
+  function createVlessWsSettingsBlock(values) {
+    var wrap = document.createElement('div');
+    wrap.dataset.xbVlessWsSettings = '1';
+    wrap.className = 'rounded-md border bg-muted/20 px-3 py-3';
+    values = values || {};
+    wrap.innerHTML = [
+      '<div class="space-y-1">',
+      '<div class="text-[13px] font-semibold">' + VLESS_WS_TITLE + '</div>',
+      '<p class="text-[11px] leading-relaxed text-muted-foreground">' + VLESS_WS_DESC + '</p>',
+      '</div>',
+      '<div class="mt-3 grid gap-3 md:grid-cols-2">',
+      '<div class="space-y-1">',
+      '<label class="block text-[12px] font-medium text-foreground/80">' + VLESS_WS_PATH_LABEL + '</label>',
+      '<input data-xb-vless-ws-path type="text" value="' + escapeAttr(values.path || '') + '" placeholder="/ws" class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm" />',
+      '<p class="text-[11px] leading-relaxed text-muted-foreground">' + VLESS_WS_PATH_HINT + '</p>',
+      '</div>',
+      '<div class="space-y-1">',
+      '<label class="block text-[12px] font-medium text-foreground/80">' + VLESS_WS_HOST_LABEL + '</label>',
+      '<input data-xb-vless-ws-host type="text" value="' + escapeAttr(values.host || '') + '" placeholder="example.com" class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm" />',
+      '<p class="text-[11px] leading-relaxed text-muted-foreground">' + VLESS_WS_HOST_HINT + '</p>',
+      '</div>',
+      '</div>'
+    ].join('');
+
+    wrap.querySelectorAll('input').forEach(function (input) {
+      input.dataset.touched = '0';
+      input.addEventListener('input', function () {
+        input.dataset.touched = '1';
+      });
+    });
+
+    return wrap;
+  }
+
+  function refreshVlessWsSettings() {
+    var dialog = findNodeDialog();
+    if (!dialog) return;
+
+    var matched = findMatchingNode(dialog);
+    var existing = dialog.querySelector('[data-xb-vless-ws-settings]');
+    if (!isVlessNodeDialog(dialog, matched) || !isWebsocketNodeDialog(dialog, matched)) {
+      if (existing) existing.remove();
+      return;
+    }
+
+    var values = vlessWsValuesFromNode(matched);
+    if (existing) {
+      var pathInput = existing.querySelector('[data-xb-vless-ws-path]');
+      var hostInput = existing.querySelector('[data-xb-vless-ws-host]');
+      if (pathInput && pathInput.dataset.touched !== '1') {
+        pathInput.value = values.path || pathInput.value || '';
+      }
+      if (hostInput && hostInput.dataset.touched !== '1') {
+        hostInput.value = values.host || hostInput.value || '';
+      }
+      return;
+    }
+
+    var block = createVlessWsSettingsBlock(values);
+    var anchor = findFieldByLabel(dialog, /\u4f20\u8f93\u534f\u8bae|Network|Transport/i);
+    if (anchor && anchor.parentElement) {
+      anchor.insertAdjacentElement('afterend', block);
+      return;
+    }
+
+    var body = dialog.querySelector('[class*="overflow-y-auto"]') || dialog;
+    body.appendChild(block);
+  }
+
+  function applyVlessWsSettings(payload) {
+    var dialog = findNodeDialog();
+    var block = dialog && dialog.querySelector('[data-xb-vless-ws-settings]');
+    if (!block) return;
+
+    var matched = findMatchingNode(dialog);
+    if (!isVlessNodeDialog(dialog, matched)) return;
+
+    var settings = normalizeObject(payload.protocol_settings);
+    if (!isWebsocketNodeDialog(dialog, matched) && String(settings.network || '').toLowerCase() !== 'ws') return;
+    payload.protocol_settings = settings;
+    settings.network = 'ws';
+
+    var networkSettings = normalizeObject(settings.network_settings);
+    settings.network_settings = networkSettings;
+
+    var pathInput = block.querySelector('[data-xb-vless-ws-path]');
+    var hostInput = block.querySelector('[data-xb-vless-ws-host]');
+    if (pathInput) {
+      var path = normalizeWsPath(pathInput.value);
+      if (path) {
+        networkSettings.path = path;
+        pathInput.value = path;
+      } else if (pathInput.dataset.touched === '1') {
+        delete networkSettings.path;
+      }
+    }
+
+    if (hostInput) {
+      var host = String(hostInput.value || '').trim();
+      networkSettings.headers = normalizeObject(networkSettings.headers);
+      if (host) {
+        networkSettings.headers.Host = host;
+      } else if (hostInput.dataset.touched === '1') {
+        delete networkSettings.headers.Host;
+      }
+      if (!Object.keys(networkSettings.headers).length) {
+        delete networkSettings.headers;
+      }
+    }
   }
 
   function createNodeSwitch(checked, zoneId) {
@@ -742,6 +922,7 @@
     window.requestAnimationFrame(function () {
       refreshPending = false;
       refreshNodeSwitches();
+      refreshVlessWsSettings();
       refreshNodeInstallMenuItems();
       refreshCloudflareConfigBlock(false);
     });
@@ -749,6 +930,7 @@
 
   patchFetch();
   patchXhr();
+  requestServerConfig(true);
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', scheduleRefresh);
