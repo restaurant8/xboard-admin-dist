@@ -9,6 +9,7 @@
   var serverConfigLoading = false;
   var serverConfigLastRequestAt = 0;
   var lastActionNodeId = null;
+  var lastActionNodeCapturedAt = 0;
 
   var CN_NODE = '\\u8282\\u70b9';
   var CN_ADDRESS = '\\u5730\\u5740';
@@ -641,12 +642,28 @@
     select.value = String(selectedZone || defaultCloudflareZoneId() || '').trim();
   }
 
-  function findNodeByText(text) {
+  function textContainsNodeIdentity(text, node) {
+    if (!node) return false;
+    text = String(text || '');
+    var name = String(node.name || '').trim();
+    var host = String(node.host || '').trim();
+    return !!((name && text.indexOf(name) !== -1) || (host && text.indexOf(host) !== -1));
+  }
+
+  function clearActionNode() {
+    lastActionNodeId = null;
+    lastActionNodeCapturedAt = 0;
+  }
+
+  function findNodeByText(text, strict) {
     var match;
     var idPattern = /#\s*(\d+)/g;
     while ((match = idPattern.exec(text || ''))) {
       if (nodes.has(match[1])) {
-        return nodes.get(match[1]);
+        var nodeById = nodes.get(match[1]);
+        if (!strict || textContainsNodeIdentity(text, nodeById)) {
+          return nodeById;
+        }
       }
     }
 
@@ -655,7 +672,7 @@
       if (found || !node) return;
       var name = String(node.name || '').trim();
       var host = String(node.host || '').trim();
-      if (name && text.indexOf(name) !== -1 && (!host || text.indexOf(host) !== -1)) {
+      if (name && text.indexOf(name) !== -1 && (!strict || !host || text.indexOf(host) !== -1)) {
         found = node;
       }
     });
@@ -669,13 +686,15 @@
     var current = control;
     for (var depth = 0; current && current !== document.body && depth < 8; depth += 1) {
       if (current.getAttribute && current.getAttribute('role') === 'menu') return;
-      var node = findNodeByText(current.textContent || '');
+      var node = findNodeByText(current.textContent || '', true);
       if (node && node.id != null) {
         lastActionNodeId = String(node.id);
+        lastActionNodeCapturedAt = Date.now();
         return;
       }
       current = current.parentElement;
     }
+    clearActionNode();
   }
 
   function fallbackCopy(text) {
@@ -754,6 +773,10 @@
 
   function refreshNodeInstallMenuItems() {
     if (!lastActionNodeId || !nodes.has(lastActionNodeId)) return;
+    if (Date.now() - lastActionNodeCapturedAt > 10000) {
+      clearActionNode();
+      return;
+    }
     var node = nodes.get(lastActionNodeId);
 
     document.querySelectorAll('[role="menu"]').forEach(function (menu) {
