@@ -157,7 +157,7 @@
       if (cmpVer(b.version, lv) >= 0) {
         out += '<div style="font-size:11px;color:#059669;">✓ 已是最新</div>';
       } else {
-        out += '<div style="font-size:11px;color:#d97706;">可升级 → ' + escapeHtml(normVer(lv)) + '</div>';
+        out += '<div style="font-size:11px;color:#dc2626;font-weight:500;">可升级 → ' + escapeHtml(normVer(lv)) + '</div>';
       }
     }
     return '<div>' + out + '</div>';
@@ -328,7 +328,7 @@
       return;
     }
 
-    var smallBtn = 'display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid ' + BORDER + ';background:hsl(var(--background));color:inherit;';
+    var smallBtn = 'display:inline-flex;align-items:center;justify-content:center;height:28px;padding:0 10px;border-radius:6px;font-size:12px;line-height:1;white-space:nowrap;cursor:pointer;border:1px solid ' + BORDER + ';background:hsl(var(--background));color:inherit;';
 
     var rows = lastBackends.map(function (b) {
       var typeLabel = b.type === 'machine' ? '机器' : '单节点';
@@ -342,7 +342,7 @@
         '<td class="xb-bk-nolabel"><input type="checkbox" data-xb-row="' + escapeHtml(key) + '" ' + (b.online ? '' : 'disabled') + ' /></td>',
         '<td class="xb-bk-cell-name xb-bk-nolabel"><div class="xb-bk-name">' + escapeHtml(b.name) + '</div><div class="xb-bk-sub">' + typeLabel + (b.nodes_count ? ' · ' + b.nodes_count + ' 节点' : '') + '</div></td>',
         '<td data-label="地址/IP" class="xb-bk-mono">' + (Array.isArray(b.ips) && b.ips.length ? b.ips.map(escapeHtml).join('<br>') : '—') + '</td>',
-        '<td data-label="状态" style="font-size:13px;">' + online + '</td>',
+        '<td data-label="状态" style="font-size:13px;white-space:nowrap;">' + online + '</td>',
         '<td data-label="版本" class="xb-bk-mono">' + versionCell(b) + '</td>',
         '<td data-label="内核/架构" style="font-size:12px;">' + (escapeHtml(b.kernel) || '—') + (b.arch ? ' / ' + escapeHtml(b.arch) : '') + '</td>',
         '<td data-label="最后心跳" style="font-size:12px;color:' + MUTED + ';">' + fmtTime(b.last_seen_at) + '</td>',
