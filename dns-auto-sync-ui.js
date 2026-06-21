@@ -748,7 +748,7 @@
       : 'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent';
     item.innerHTML = [
       '<div class="flex w-full items-center">',
-      '<span class="mr-2 inline-flex size-4 items-center justify-center" aria-hidden="true">&#x21e9;</span>',
+      '<svg class="mr-2 size-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>',
       '<span>' + NODE_INSTALL_LABEL + '</span>',
       '</div>'
     ].join('');
@@ -763,12 +763,50 @@
         return;
       }
 
-      copyText(command).then(function (ok) {
-        flashMenuItem(item, ok ? NODE_INSTALL_COPIED : NODE_INSTALL_MISSING);
-      });
+      showCommandDialog(NODE_INSTALL_LABEL, command);
     }, true);
 
     return item;
+  }
+
+  // showCommandDialog renders a native-styled modal with the command in a
+  // read-only field plus a copy button, instead of silently copying.
+  function showCommandDialog(title, command) {
+    var existing = document.querySelector('[data-xb-command-dialog]');
+    if (existing) existing.remove();
+
+    var overlay = document.createElement('div');
+    overlay.dataset.xbCommandDialog = '1';
+    overlay.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4';
+    overlay.innerHTML = [
+      '<div class="w-full max-w-2xl rounded-lg border bg-background p-5 shadow-lg" role="dialog" aria-modal="true">',
+      '<div class="mb-3 text-base font-semibold">' + escapeHtml(title) + '</div>',
+      '<textarea readonly data-xb-command-text class="flex min-h-[96px] w-full resize-none rounded-md border border-input bg-muted/30 px-3 py-2 font-mono text-xs leading-relaxed" spellcheck="false"></textarea>',
+      '<div class="mt-4 flex items-center justify-end gap-2">',
+      '<button data-xb-command-copy type="button" class="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">复制</button>',
+      '<button data-xb-command-close type="button" class="inline-flex h-9 items-center rounded-md border px-4 text-sm hover:bg-accent">关闭</button>',
+      '</div>',
+      '</div>'
+    ].join('');
+
+    var textarea = overlay.querySelector('[data-xb-command-text]');
+    textarea.value = command;
+    var copyBtn = overlay.querySelector('[data-xb-command-copy]');
+    var closeBtn = overlay.querySelector('[data-xb-command-close]');
+
+    function close() { overlay.remove(); }
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+    closeBtn.addEventListener('click', close);
+    copyBtn.addEventListener('click', function () {
+      textarea.select();
+      copyText(command).then(function (ok) {
+        copyBtn.textContent = ok ? '已复制' : '复制失败';
+        window.setTimeout(function () { if (copyBtn.isConnected) copyBtn.textContent = '复制'; }, 1200);
+      });
+    });
+
+    document.body.appendChild(overlay);
+    window.setTimeout(function () { textarea.focus(); textarea.select(); }, 0);
   }
 
   function refreshNodeInstallMenuItems() {
