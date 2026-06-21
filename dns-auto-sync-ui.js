@@ -11,6 +11,26 @@
   var lastActionNodeId = null;
   var lastActionNodeCapturedAt = 0;
 
+  // Admin API uses Sanctum (Authorization: Bearer <token>). This script makes
+  // its own config/fetch request, which 403s without the token, so capture the
+  // SPA's Authorization header from its own requests and reuse it.
+  var capturedAuth = '';
+  function captureAuth(headers) {
+    if (!headers) return;
+    try {
+      if (typeof headers.get === 'function') {
+        var a = headers.get('Authorization') || headers.get('authorization');
+        if (a) capturedAuth = a;
+        return;
+      }
+      if (typeof headers === 'object') {
+        for (var k in headers) {
+          if (String(k).toLowerCase() === 'authorization' && headers[k]) capturedAuth = headers[k];
+        }
+      }
+    } catch (e) {}
+  }
+
   var CN_NODE = '\\u8282\\u70b9';
   var CN_ADDRESS = '\\u5730\\u5740';
   var CN_DOMAIN = '\\u57df\\u540d';
@@ -93,13 +113,15 @@
 
     serverConfigLoading = true;
     serverConfigLastRequestAt = now;
+    var headers = {
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    };
+    if (capturedAuth) headers['Authorization'] = capturedAuth;
     window.fetch(base + '/config/fetch?key=server', {
       method: 'GET',
       credentials: 'same-origin',
-      headers: {
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      }
+      headers: headers
     }).then(function (response) {
       serverConfigRequested = true;
       return response.clone().text();
@@ -117,6 +139,7 @@
     var originalFetch = window.fetch;
     window.fetch = function (input, init) {
       var url = typeof input === 'string' ? input : input && input.url;
+      try { captureAuth(init && init.headers); if (input && input.headers) captureAuth(input.headers); } catch (e) {}
       if (url && init && /\/server\/manage\/save(?:\?|$)/.test(url)) {
         init = Object.assign({}, init);
         init.body = patchNodeSaveBody(init.body);
@@ -142,6 +165,12 @@
   function patchXhr() {
     var originalOpen = XMLHttpRequest.prototype.open;
     var originalSend = XMLHttpRequest.prototype.send;
+    var originalSetHeader = XMLHttpRequest.prototype.setRequestHeader;
+
+    XMLHttpRequest.prototype.setRequestHeader = function (k, v) {
+      try { if (String(k).toLowerCase() === 'authorization' && v) capturedAuth = v; } catch (e) {}
+      return originalSetHeader.apply(this, arguments);
+    };
 
     XMLHttpRequest.prototype.open = function (method, url) {
       this.__xboardDnsUrl = url;
