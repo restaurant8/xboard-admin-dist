@@ -3,13 +3,78 @@
   window.__xboardBackendManagerLoaded = true;
 
   var NAV_LABEL = '后端管理';
-  var NODE_MANAGE_LABELS = ['节点管理', 'Server Manage', 'Node Management'];
   var POLL_INTERVAL = 3000;
 
   var panelEl = null;
   var pollTimer = null;
   var lastBackends = [];
   var downloadBase = '';
+  var navButtonSeen = false;
+  var attempts = 0;
+
+  // ---- auth capture ------------------------------------------------------
+  // The admin API authenticates via Sanctum (Authorization: Bearer <token>).
+  // Injected scripts don't have the token, so we capture it from the SPA's own
+  // requests (this script loads before the SPA module, so the patches are in
+  // place before any request is made).
+  var capturedAuth = '';
+
+  function captureAuth(headers) {
+    if (!headers) return;
+    try {
+      if (typeof headers.get === 'function') {
+        var a = headers.get('Authorization') || headers.get('authorization');
+        if (a) capturedAuth = a;
+        return;
+      }
+      if (typeof headers === 'object') {
+        for (var k in headers) {
+          if (String(k).toLowerCase() === 'authorization' && headers[k]) capturedAuth = headers[k];
+        }
+      }
+    } catch (e) {}
+  }
+
+  (function patchAuthCapture() {
+    var origFetch = window.fetch;
+    if (origFetch) {
+      window.fetch = function (input, init) {
+        try {
+          if (init && init.headers) captureAuth(init.headers);
+          else if (input && input.headers) captureAuth(input.headers);
+        } catch (e) {}
+        return origFetch.apply(this, arguments);
+      };
+    }
+    var origSet = XMLHttpRequest.prototype.setRequestHeader;
+    XMLHttpRequest.prototype.setRequestHeader = function (k, v) {
+      try {
+        if (String(k).toLowerCase() === 'authorization' && v) capturedAuth = v;
+      } catch (e) {}
+      return origSet.apply(this, arguments);
+    };
+  })();
+
+  function tokenFromStorage() {
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var v = localStorage.getItem(localStorage.key(i));
+        if (!v) continue;
+        if (/^\d+\|[A-Za-z0-9]{20,}$/.test(v)) return 'Bearer ' + v;
+        if (v.length < 300 && v.indexOf('|') > 0 && v.charAt(0) === '{') {
+          try {
+            var o = JSON.parse(v);
+            if (o && typeof o.token === 'string' && /^\d+\|/.test(o.token)) return 'Bearer ' + o.token;
+          } catch (e) {}
+        }
+      }
+    } catch (e) {}
+    return '';
+  }
+
+  function authHeader() {
+    return capturedAuth || tokenFromStorage();
+  }
 
   // ---- API helpers -------------------------------------------------------
 
@@ -31,6 +96,8 @@
         'X-Requested-With': 'XMLHttpRequest'
       }
     };
+    var auth = authHeader();
+    if (auth) init.headers['Authorization'] = auth;
     if (body !== undefined) {
       init.headers['Content-Type'] = 'application/json';
       init.body = JSON.stringify(body);
@@ -222,7 +289,6 @@
     var base = baseInput && baseInput.value ? baseInput.value.trim() : '';
     if (base) payload.download_base = base;
     api('POST', '/server/machine/upgrade', payload).then(function () {
-      // Optimistically mark dispatched so the UI reflects it before the first poll.
       backends.forEach(function (b) { b.upgrade = { status: 'dispatched' }; });
       renderTable();
     }).catch(function (err) {
@@ -256,80 +322,81 @@
     }).catch(function () {});
   }
 
-  // ---- sidebar injection -------------------------------------------------
+  // ---- sidebar injection (as a child of the 节点管理 group) ---------------
 
-  function findNodeManageNavLink() {
-    var candidates = document.querySelectorAll('aside a, nav a, [data-sidebar] a, aside button, nav button');
-    for (var i = 0; i < candidates.length; i++) {
-      var el = candidates[i];
-      var text = (el.textContent || '').trim();
-      for (var j = 0; j < NODE_MANAGE_LABELS.length; j++) {
-        if (text === NODE_MANAGE_LABELS[j]) return el;
-      }
+  function findNodeManageButton() {
+    var btns = document.querySelectorAll('nav button, aside button');
+    for (var i = 0; i < btns.length; i++) {
+      if (btns[i].getAttribute('data-xb-backend-nav')) continue;
+      if ((btns[i].textContent || '').replace(/\s+/g, '') === '节点管理') return btns[i];
     }
     return null;
   }
 
-  function injectNavItem() {
-    if (document.querySelector('[data-xb-backend-nav]')) return;
-    var anchor = findNodeManageNavLink();
-    if (!anchor) return;
+  // Insert "后端管理" as a sub-item inside the 节点管理 collapsible <ul>. The
+  // submenu is only in the DOM while the group is expanded, and Vue re-renders
+  // it, so this runs from a MutationObserver and re-injects whenever needed.
+  function injectChildItem() {
+    var btn = findNodeManageButton();
+    if (!btn) return;
+    navButtonSeen = true;
+    var wrapper = btn.parentElement;
+    if (!wrapper) return;
+    var ul = wrapper.querySelector('ul');
+    if (!ul) return; // group collapsed → nothing to inject into yet
+    if (ul.querySelector('[data-xb-backend-child]')) return; // already present
+    var sample = ul.querySelector('li');
+    if (!sample) return;
 
-    var item = anchor.cloneNode(true);
-    item.dataset.xbBackendNav = '1';
-    if (item.tagName === 'A') item.removeAttribute('href');
-    // Replace the visible label text while keeping the original icon/markup.
+    var li = sample.cloneNode(true);
+    li.setAttribute('data-xb-backend-child', '1');
+    var a = li.querySelector('a') || li;
+    if (a.tagName === 'A') {
+      a.setAttribute('href', 'javascript:void(0)');
+      a.removeAttribute('aria-current');
+    }
+    if (a.classList) a.classList.remove('bg-secondary', 'text-secondary-foreground');
+
+    // Relabel: replace the first non-empty text node inside the link.
     var labelSet = false;
-    var walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT, null);
-    var textNode;
-    while ((textNode = walker.nextNode())) {
-      if (textNode.nodeValue && textNode.nodeValue.trim()) {
-        textNode.nodeValue = textNode.nodeValue.replace(textNode.nodeValue.trim(), NAV_LABEL);
+    for (var i = 0; i < a.childNodes.length; i++) {
+      var n = a.childNodes[i];
+      if (n.nodeType === 3 && n.nodeValue && n.nodeValue.trim()) {
+        n.nodeValue = NAV_LABEL;
         labelSet = true;
         break;
       }
     }
-    if (!labelSet) item.textContent = NAV_LABEL;
-    // Drop any active styling carried over from the clone.
-    item.removeAttribute('aria-current');
-    item.classList.remove('bg-accent', 'text-accent-foreground', 'active');
+    if (!labelSet) a.appendChild(document.createTextNode(NAV_LABEL));
 
-    item.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      openPanel();
-    }, true);
+    var onClick = function (e) { e.preventDefault(); e.stopPropagation(); openPanel(); };
+    li.addEventListener('click', onClick, true);
 
-    if (anchor.parentElement) {
-      anchor.insertAdjacentElement('afterend', item);
-    }
+    ul.appendChild(li);
   }
 
   function injectFallbackButton() {
-    if (document.querySelector('[data-xb-backend-nav]') || document.querySelector('[data-xb-backend-fab]')) return;
-    var btn = document.createElement('button');
-    btn.dataset.xbBackendFab = '1';
-    btn.type = 'button';
-    btn.textContent = NAV_LABEL;
-    btn.className = 'fixed bottom-4 right-4 z-[9990] inline-flex h-9 items-center rounded-full border bg-background px-4 text-sm shadow-md hover:bg-accent';
-    btn.addEventListener('click', openPanel);
-    document.body.appendChild(btn);
+    if (document.querySelector('[data-xb-backend-fab]')) return;
+    var b = document.createElement('button');
+    b.dataset.xbBackendFab = '1';
+    b.type = 'button';
+    b.textContent = NAV_LABEL;
+    b.className = 'fixed bottom-4 right-4 z-[9990] inline-flex h-9 items-center rounded-full border bg-background px-4 text-sm shadow-md hover:bg-accent';
+    b.addEventListener('click', openPanel);
+    document.body.appendChild(b);
   }
 
   var injectPending = false;
-  var attempts = 0;
   function scheduleInject() {
     if (injectPending) return;
     injectPending = true;
     window.requestAnimationFrame(function () {
       injectPending = false;
-      injectNavItem();
+      injectChildItem();
       attempts++;
-      // After several attempts without finding the sidebar item, add a fallback
-      // launcher so the feature is always reachable.
-      if (!document.querySelector('[data-xb-backend-nav]') && attempts > 40) {
-        injectFallbackButton();
-      }
+      // Only fall back to a floating launcher if the 节点管理 group never
+      // appears (unexpected layout). Collapsed-but-present is not a failure.
+      if (!navButtonSeen && attempts > 80) injectFallbackButton();
     });
   }
 
