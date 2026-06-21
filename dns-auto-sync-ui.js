@@ -777,14 +777,16 @@
 
     var overlay = document.createElement('div');
     overlay.dataset.xbCommandDialog = '1';
-    overlay.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4';
+    // Inline styles: the admin's purged Tailwind build lacks arbitrary utilities
+    // (z-[9999], bg-black/50, etc.), which would leave this dialog unstyled.
+    overlay.setAttribute('style', 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:16px;');
     overlay.innerHTML = [
-      '<div class="w-full max-w-2xl rounded-lg border bg-background p-5 shadow-lg" role="dialog" aria-modal="true">',
-      '<div class="mb-3 text-base font-semibold">' + escapeHtml(title) + '</div>',
-      '<textarea readonly data-xb-command-text class="flex min-h-[96px] w-full resize-none rounded-md border border-input bg-muted/30 px-3 py-2 font-mono text-xs leading-relaxed" spellcheck="false"></textarea>',
-      '<div class="mt-4 flex items-center justify-end gap-2">',
-      '<button data-xb-command-copy type="button" class="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">复制</button>',
-      '<button data-xb-command-close type="button" class="inline-flex h-9 items-center rounded-md border px-4 text-sm hover:bg-accent">关闭</button>',
+      '<div role="dialog" aria-modal="true" style="width:100%;max-width:640px;border-radius:10px;border:1px solid hsl(var(--border));background:hsl(var(--background));color:hsl(var(--foreground));padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.35);">',
+      '<div style="margin-bottom:12px;font-size:16px;font-weight:600;">' + escapeHtml(title) + '</div>',
+      '<textarea readonly data-xb-command-text spellcheck="false" style="width:100%;min-height:96px;resize:none;border-radius:6px;border:1px solid hsl(var(--border));background:hsl(var(--muted)/.3);color:inherit;padding:8px 12px;font-family:monospace;font-size:12px;line-height:1.6;box-sizing:border-box;"></textarea>',
+      '<div style="margin-top:16px;display:flex;align-items:center;justify-content:flex-end;gap:8px;">',
+      '<button data-xb-command-copy type="button" style="display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:6px;border:none;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-size:14px;font-weight:500;cursor:pointer;">复制</button>',
+      '<button data-xb-command-close type="button" style="display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:6px;border:1px solid hsl(var(--border));background:hsl(var(--background));color:inherit;font-size:14px;cursor:pointer;">关闭</button>',
       '</div>',
       '</div>'
     ].join('');

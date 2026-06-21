@@ -146,38 +146,46 @@
     var u = b.upgrade;
     if (!u || !u.status) return '';
     switch (u.status) {
-      case 'dispatched': return '<span class="text-amber-600">已下发…</span>';
-      case 'started': return '<span class="text-amber-600">升级中…</span>';
-      case 'success': return '<span class="text-emerald-600">成功 ' + escapeHtml(u.to_version || '') + '</span>';
-      case 'skipped': return '<span class="text-muted-foreground">已是最新</span>';
-      case 'failed': return '<span class="text-red-600" title="' + escapeHtml(u.error || '') + '">失败</span>';
+      case 'dispatched': return '<span style="color:#d97706;">已下发…</span>';
+      case 'started': return '<span style="color:#d97706;">升级中…</span>';
+      case 'success': return '<span style="color:#059669;">成功 ' + escapeHtml(u.to_version || '') + '</span>';
+      case 'skipped': return '<span style="color:' + MUTED + ';">已是最新</span>';
+      case 'failed': return '<span style="color:#dc2626;" title="' + escapeHtml(u.error || '') + '">失败</span>';
       default: return escapeHtml(u.status);
     }
   }
 
   // ---- panel rendering ---------------------------------------------------
 
+  // Structural styles are inline (not Tailwind classes): the admin's compiled
+  // Tailwind is purged, so arbitrary utilities like z-[9998]/bg-black/50/h-[85vh]
+  // don't exist and would leave the modal unstyled (bleeding through the page).
+  var BTN = 'display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:6px;font-size:13px;line-height:1;cursor:pointer;border:1px solid hsl(var(--border));background:hsl(var(--background));color:inherit;';
+  var BTN_PRIMARY = 'display:inline-flex;align-items:center;height:32px;padding:0 14px;border-radius:6px;font-size:13px;line-height:1;cursor:pointer;border:none;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-weight:500;';
+  var MUTED = 'hsl(var(--muted-foreground))';
+  var BORDER = 'hsl(var(--border))';
+
   function openPanel() {
     if (panelEl) return;
     panelEl = document.createElement('div');
     panelEl.dataset.xbBackendPanel = '1';
-    panelEl.className = 'fixed inset-0 z-[9998] flex items-center justify-center bg-black/50 p-4';
+    panelEl.setAttribute('style', 'position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:16px;');
     panelEl.innerHTML = [
-      '<div class="flex h-[85vh] w-full max-w-5xl flex-col rounded-lg border bg-background shadow-lg">',
-      '<div class="flex items-center justify-between border-b px-5 py-3">',
-      '<div class="text-base font-semibold">后端管理</div>',
-      '<div class="flex items-center gap-2">',
-      '<button data-xb-refresh type="button" class="inline-flex h-8 items-center rounded-md border px-3 text-sm hover:bg-accent">刷新</button>',
-      '<button data-xb-upgrade-selected type="button" class="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">升级所选</button>',
-      '<button data-xb-close type="button" class="inline-flex h-8 items-center rounded-md border px-3 text-sm hover:bg-accent">关闭</button>',
+      '<div style="display:flex;flex-direction:column;width:100%;max-width:980px;height:85vh;border-radius:10px;border:1px solid ' + BORDER + ';background:hsl(var(--background));color:hsl(var(--foreground));box-shadow:0 12px 40px rgba(0,0,0,.35);overflow:hidden;">',
+      '<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid ' + BORDER + ';padding:12px 20px;">',
+      '<div style="font-size:16px;font-weight:600;">后端管理</div>',
+      '<div style="display:flex;gap:8px;">',
+      '<button data-xb-refresh type="button" style="' + BTN + '">刷新</button>',
+      '<button data-xb-upgrade-selected type="button" style="' + BTN_PRIMARY + '">升级所选</button>',
+      '<button data-xb-close type="button" style="' + BTN + '">关闭</button>',
       '</div>',
       '</div>',
-      '<div data-xb-body class="flex-1 overflow-auto px-5 py-3"><div class="py-10 text-center text-sm text-muted-foreground">加载中…</div></div>',
-      '<div class="flex items-center gap-2 border-t px-5 py-2">',
-      '<label class="whitespace-nowrap text-xs text-muted-foreground">下载源</label>',
-      '<input data-xb-download-base type="text" placeholder="留空使用默认 GitHub releases" class="flex h-8 flex-1 rounded-md border border-input bg-background px-2 text-xs" />',
+      '<div data-xb-body style="flex:1;overflow:auto;padding:12px 20px;"><div style="padding:40px 0;text-align:center;font-size:13px;color:' + MUTED + ';">加载中…</div></div>',
+      '<div style="display:flex;align-items:center;gap:8px;border-top:1px solid ' + BORDER + ';padding:8px 20px;">',
+      '<label style="white-space:nowrap;font-size:12px;color:' + MUTED + ';">下载源</label>',
+      '<input data-xb-download-base type="text" placeholder="留空使用默认 GitHub releases" style="flex:1;height:32px;border-radius:6px;border:1px solid ' + BORDER + ';background:transparent;color:inherit;padding:0 8px;font-size:12px;" />',
       '</div>',
-      '<div class="border-t px-5 py-2 text-xs text-muted-foreground">升级以「后端进程」为单位下发：同一台机器下的多个节点只会升级一次。</div>',
+      '<div style="border-top:1px solid ' + BORDER + ';padding:8px 20px;font-size:12px;color:' + MUTED + ';">升级以「后端进程」为单位下发：同一台机器下的多个节点只会升级一次。</div>',
       '</div>'
     ].join('');
 
@@ -201,7 +209,7 @@
   function reload() {
     fetchBackends().then(renderTable).catch(function (err) {
       var body = panelEl && panelEl.querySelector('[data-xb-body]');
-      if (body) body.innerHTML = '<div class="py-10 text-center text-sm text-red-600">加载失败：' + escapeHtml(err.message) + '</div>';
+      if (body) body.innerHTML = '<div style="padding:40px 0;text-align:center;font-size:13px;color:#dc2626;">加载失败：' + escapeHtml(err.message) + '</div>';
     });
   }
 
@@ -211,36 +219,40 @@
     if (!body) return;
 
     if (!lastBackends.length) {
-      body.innerHTML = '<div class="py-10 text-center text-sm text-muted-foreground">暂无运行中的后端。</div>';
+      body.innerHTML = '<div style="padding:40px 0;text-align:center;font-size:13px;color:' + MUTED + ';">暂无运行中的后端。</div>';
       return;
     }
+
+    var td = 'padding:8px 12px 8px 0;border-bottom:1px solid ' + BORDER + ';vertical-align:middle;';
+    var th = 'padding:8px 12px 8px 0;border-bottom:1px solid ' + BORDER + ';text-align:left;font-size:12px;font-weight:500;color:' + MUTED + ';';
+    var smallBtn = 'display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid ' + BORDER + ';background:hsl(var(--background));color:inherit;';
 
     var rows = lastBackends.map(function (b) {
       var typeLabel = b.type === 'machine' ? '机器' : '单节点';
       var online = b.online
-        ? '<span class="inline-flex items-center gap-1 text-emerald-600">●在线</span>'
-        : '<span class="inline-flex items-center gap-1 text-muted-foreground">●离线</span>';
+        ? '<span style="color:#059669;">● 在线</span>'
+        : '<span style="color:' + MUTED + ';">● 离线</span>';
       var key = backendKey(b);
       return [
-        '<tr class="border-b last:border-0">',
-        '<td class="py-2 pr-2"><input type="checkbox" data-xb-row="' + escapeHtml(key) + '" class="h-4 w-4" ' + (b.online ? '' : 'disabled') + ' /></td>',
-        '<td class="py-2 pr-3"><div class="font-medium">' + escapeHtml(b.name) + '</div><div class="text-xs text-muted-foreground">' + typeLabel + (b.nodes_count ? ' · ' + b.nodes_count + ' 节点' : '') + '</div></td>',
-        '<td class="py-2 pr-3">' + online + '</td>',
-        '<td class="py-2 pr-3 font-mono text-xs">' + (escapeHtml(b.version) || '—') + '</td>',
-        '<td class="py-2 pr-3 text-xs">' + (escapeHtml(b.kernel) || '—') + (b.arch ? ' / ' + escapeHtml(b.arch) : '') + '</td>',
-        '<td class="py-2 pr-3 text-xs text-muted-foreground">' + fmtTime(b.last_seen_at) + '</td>',
-        '<td class="py-2 pr-3 text-xs">' + upgradeStatusText(b) + '</td>',
-        '<td class="py-2 text-right"><button type="button" data-xb-upgrade-one="' + escapeHtml(key) + '" class="inline-flex h-7 items-center rounded-md border px-2 text-xs hover:bg-accent ' + (b.online ? '' : 'pointer-events-none opacity-40') + '">升级</button></td>',
+        '<tr>',
+        '<td style="' + td + '"><input type="checkbox" data-xb-row="' + escapeHtml(key) + '" ' + (b.online ? '' : 'disabled') + ' /></td>',
+        '<td style="' + td + '"><div style="font-weight:500;">' + escapeHtml(b.name) + '</div><div style="font-size:12px;color:' + MUTED + ';">' + typeLabel + (b.nodes_count ? ' · ' + b.nodes_count + ' 节点' : '') + '</div></td>',
+        '<td style="' + td + 'font-size:13px;">' + online + '</td>',
+        '<td style="' + td + 'font-family:monospace;font-size:12px;">' + (escapeHtml(b.version) || '—') + '</td>',
+        '<td style="' + td + 'font-size:12px;">' + (escapeHtml(b.kernel) || '—') + (b.arch ? ' / ' + escapeHtml(b.arch) : '') + '</td>',
+        '<td style="' + td + 'font-size:12px;color:' + MUTED + ';">' + fmtTime(b.last_seen_at) + '</td>',
+        '<td style="' + td + 'font-size:12px;">' + upgradeStatusText(b) + '</td>',
+        '<td style="' + td + 'text-align:right;"><button type="button" data-xb-upgrade-one="' + escapeHtml(key) + '" style="' + smallBtn + (b.online ? '' : 'pointer-events:none;opacity:.4;') + '">升级</button></td>',
         '</tr>'
       ].join('');
     }).join('');
 
     body.innerHTML = [
-      '<table class="w-full text-sm">',
-      '<thead><tr class="border-b text-left text-xs text-muted-foreground">',
-      '<th class="py-2 pr-2"><input type="checkbox" data-xb-select-all class="h-4 w-4" /></th>',
-      '<th class="py-2 pr-3">后端</th><th class="py-2 pr-3">状态</th><th class="py-2 pr-3">版本</th>',
-      '<th class="py-2 pr-3">内核/架构</th><th class="py-2 pr-3">最后心跳</th><th class="py-2 pr-3">升级</th><th></th>',
+      '<table style="width:100%;border-collapse:collapse;font-size:14px;">',
+      '<thead><tr>',
+      '<th style="' + th + '"><input type="checkbox" data-xb-select-all /></th>',
+      '<th style="' + th + '">后端</th><th style="' + th + '">状态</th><th style="' + th + '">版本</th>',
+      '<th style="' + th + '">内核/架构</th><th style="' + th + '">最后心跳</th><th style="' + th + '">升级</th><th style="' + th + '"></th>',
       '</tr></thead>',
       '<tbody>' + rows + '</tbody>',
       '</table>'
@@ -381,7 +393,7 @@
     b.dataset.xbBackendFab = '1';
     b.type = 'button';
     b.textContent = NAV_LABEL;
-    b.className = 'fixed bottom-4 right-4 z-[9990] inline-flex h-9 items-center rounded-full border bg-background px-4 text-sm shadow-md hover:bg-accent';
+    b.setAttribute('style', 'position:fixed;bottom:16px;right:16px;z-index:99990;display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:9999px;border:1px solid hsl(var(--border));background:hsl(var(--background));color:inherit;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.2);cursor:pointer;');
     b.addEventListener('click', openPanel);
     document.body.appendChild(b);
   }
