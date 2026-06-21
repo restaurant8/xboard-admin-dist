@@ -277,11 +277,14 @@
       return;
     }
     var html = ['<table class="xb-ur-table"><thead><tr>',
-      '<th>用户</th><th>类型</th><th>IP</th><th>归属地</th><th>节点</th><th>User-Agent</th><th>时间</th>',
+      '<th>用户</th><th>在线IP</th><th>类型</th><th>IP</th><th>归属地</th><th>节点</th><th>User-Agent</th><th>时间</th>',
       '</tr></thead><tbody>'];
     rows.forEach(function (r) {
+      var oc = r.online_ip_count || 0;
+      var ocColor = oc > 0 ? '#059669' : MUTED;
       html.push('<tr>');
       html.push('<td data-label="用户"><div>' + escapeHtml(r.user_email || ('#' + r.user_id)) + '</div><div class="xb-ur-sub">ID ' + r.user_id + '</div></td>');
+      html.push('<td data-label="在线IP"><span style="font-weight:600;color:' + ocColor + ';">' + oc + '</span></td>');
       html.push('<td data-label="类型">' + typeBadge(r.type) + '</td>');
       html.push('<td data-label="IP" class="xb-ur-mono">' + escapeHtml(r.ip) + '</td>');
       html.push('<td data-label="归属地">' + (escapeHtml(r.location) || '<span class="xb-ur-sub">—</span>') + '</td>');
