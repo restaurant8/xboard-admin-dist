@@ -111,6 +111,7 @@
   // ---- styles ------------------------------------------------------------
   var BTN = 'display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:6px;font-size:13px;line-height:1;cursor:pointer;border:1px solid hsl(var(--border));background:hsl(var(--background));color:inherit;';
   var BTN_PRIMARY = 'display:inline-flex;align-items:center;height:32px;padding:0 14px;border-radius:6px;font-size:13px;line-height:1;cursor:pointer;border:none;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-weight:500;';
+  var BTN_DANGER = 'display:inline-flex;align-items:center;height:32px;padding:0 14px;border-radius:6px;font-size:13px;line-height:1;cursor:pointer;border:1px solid #dc2626;background:transparent;color:#dc2626;font-weight:500;';
   var INPUT = 'height:32px;border-radius:6px;border:1px solid hsl(var(--border));background:transparent;color:inherit;padding:0 8px;font-size:13px;';
   var MUTED = 'hsl(var(--muted-foreground))';
   var BORDER = 'hsl(var(--border))';
@@ -162,7 +163,10 @@
       '<div class="xb-ur-modal">',
       '<div class="xb-ur-head">',
       '<div class="xb-ur-title">使用记录</div>',
+      '<div style="display:flex;gap:8px;">',
+      '<button data-ur-clear type="button" style="' + BTN_DANGER + '">一键清除</button>',
       '<button data-ur-close type="button" style="' + BTN + '">关闭</button>',
+      '</div>',
       '</div>',
       '<div class="xb-ur-filters">',
       '<input data-ur-keyword type="text" placeholder="用户邮箱 / ID" style="' + INPUT + 'width:180px;" />',
@@ -184,6 +188,7 @@
 
     panelEl.addEventListener('click', function (e) { if (e.target === panelEl) closePanel(); });
     panelEl.querySelector('[data-ur-close]').addEventListener('click', closePanel);
+    panelEl.querySelector('[data-ur-clear]').addEventListener('click', clearRecords);
     panelEl.querySelector('[data-ur-search]').addEventListener('click', function () { state.page = 1; reload(); });
     panelEl.querySelector('[data-ur-reset]').addEventListener('click', function () {
       panelEl.querySelector('[data-ur-keyword]').value = '';
@@ -205,6 +210,41 @@
   }
 
   function closePanel() { if (panelEl) { panelEl.remove(); panelEl = null; } }
+
+  function clearRecords() {
+    if (!panelEl) return;
+    var kw = panelEl.querySelector('[data-ur-keyword]').value.trim();
+    var ip = panelEl.querySelector('[data-ur-ip]').value.trim();
+    var type = panelEl.querySelector('[data-ur-type]').value;
+    var q = [];
+    if (kw) q.push('keyword=' + encodeURIComponent(kw));
+    if (ip) q.push('ip=' + encodeURIComponent(ip));
+    if (type) q.push('type=' + encodeURIComponent(type));
+
+    var filtered = q.length > 0;
+    var msg = filtered
+      ? '确认清除【当前筛选条件】下的所有使用记录？此操作不可恢复。'
+      : '确认清除【全部】使用记录？此操作不可恢复！';
+    if (!window.confirm(msg)) return;
+
+    var btn = panelEl.querySelector('[data-ur-clear]');
+    var oldText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '清除中…';
+
+    api('POST', '/user/clearUsageRecords' + (q.length ? '?' + q.join('&') : '')).then(function (json) {
+      var d = (json && json.data) || {};
+      btn.disabled = false;
+      btn.textContent = oldText;
+      window.alert('已清除 ' + (d.deleted || 0) + ' 条记录');
+      state.page = 1;
+      reload();
+    }).catch(function (err) {
+      btn.disabled = false;
+      btn.textContent = oldText;
+      window.alert('清除失败：' + err.message);
+    });
+  }
 
   function reload() {
     if (!panelEl) return;
