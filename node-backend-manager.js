@@ -4,6 +4,8 @@
 
   var NAV_LABEL = '后端管理';
   var POLL_INTERVAL = 3000;
+  // 下发后超过该秒数仍停留在 dispatched（节点未发回 ack/result）即视为超时。
+  var DISPATCH_TIMEOUT = 120;
 
   var panelEl = null;
   var pollTimer = null;
@@ -146,7 +148,11 @@
     var u = b.upgrade;
     if (!u || !u.status) return '';
     switch (u.status) {
-      case 'dispatched': return '<span style="color:#d97706;">已下发…</span>';
+      case 'dispatched':
+        if (u.updated_at && (Date.now() / 1000 - u.updated_at) > DISPATCH_TIMEOUT) {
+          return '<span style="color:#dc2626;" title="命令已下发但后端进程未在' + DISPATCH_TIMEOUT + '秒内响应，请确认节点在线且已升级到支持自更新的版本。">下发超时·未响应</span>';
+        }
+        return '<span style="color:#d97706;">已下发…</span>';
       case 'started': return '<span style="color:#d97706;">升级中…</span>';
       case 'success': return '<span style="color:#059669;">成功 ' + escapeHtml(u.to_version || '') + '</span>';
       case 'skipped': return '<span style="color:' + MUTED + ';">已是最新</span>';
@@ -165,27 +171,67 @@
   var MUTED = 'hsl(var(--muted-foreground))';
   var BORDER = 'hsl(var(--border))';
 
+  // Responsive styles live in a scoped <style> tag (not inline) so a media
+  // query can collapse the wide table into stacked cards on narrow viewports.
+  function injectStyles() {
+    if (document.getElementById('xb-backend-styles')) return;
+    var s = document.createElement('style');
+    s.id = 'xb-backend-styles';
+    s.textContent = [
+      '.xb-bk-overlay{position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:16px;}',
+      '.xb-bk-modal{display:flex;flex-direction:column;width:100%;max-width:980px;height:85vh;border-radius:10px;border:1px solid ' + BORDER + ';background:hsl(var(--background));color:hsl(var(--foreground));box-shadow:0 12px 40px rgba(0,0,0,.35);overflow:hidden;}',
+      '.xb-bk-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-bottom:1px solid ' + BORDER + ';padding:12px 20px;}',
+      '.xb-bk-title{font-size:16px;font-weight:600;}',
+      '.xb-bk-actions{display:flex;gap:8px;flex-wrap:wrap;}',
+      '.xb-bk-body{flex:1;overflow:auto;padding:12px 20px;}',
+      '.xb-bk-foot{display:flex;align-items:center;gap:8px;border-top:1px solid ' + BORDER + ';padding:8px 20px;}',
+      '.xb-bk-note{border-top:1px solid ' + BORDER + ';padding:8px 20px;font-size:12px;color:' + MUTED + ';}',
+      '.xb-bk-table{width:100%;border-collapse:collapse;font-size:14px;}',
+      '.xb-bk-table th{padding:8px 12px 8px 0;border-bottom:1px solid ' + BORDER + ';text-align:left;font-size:12px;font-weight:500;color:' + MUTED + ';white-space:nowrap;}',
+      '.xb-bk-table td{padding:8px 12px 8px 0;border-bottom:1px solid ' + BORDER + ';vertical-align:middle;}',
+      '.xb-bk-name{font-weight:500;}',
+      '.xb-bk-sub{font-size:12px;color:' + MUTED + ';}',
+      '.xb-bk-mono{font-family:monospace;font-size:12px;word-break:break-all;}',
+      '@media (max-width:760px){',
+      '  .xb-bk-overlay{padding:0;}',
+      '  .xb-bk-modal{max-width:100%;height:100%;border-radius:0;border:none;}',
+      '  .xb-bk-head,.xb-bk-body,.xb-bk-foot,.xb-bk-note{padding-left:14px;padding-right:14px;}',
+      '  .xb-bk-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}',
+      '  .xb-bk-table,.xb-bk-table tbody,.xb-bk-table tr,.xb-bk-table td{display:block;width:auto;}',
+      '  .xb-bk-table tr{border:1px solid ' + BORDER + ';border-radius:8px;padding:6px 12px;margin-bottom:10px;}',
+      '  .xb-bk-table td{border:none;padding:5px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:right;}',
+      '  .xb-bk-table td::before{content:attr(data-label);color:' + MUTED + ';font-size:12px;font-weight:500;text-align:left;flex:0 0 auto;}',
+      '  .xb-bk-table td.xb-bk-nolabel::before{content:none;}',
+      '  .xb-bk-table td.xb-bk-cell-name{flex-direction:column;align-items:flex-start;text-align:left;}',
+      '  .xb-bk-table td.xb-bk-cell-action{justify-content:stretch;}',
+      '  .xb-bk-table td.xb-bk-cell-action button{flex:1;justify-content:center;height:34px;}',
+      '}'
+    ].join('');
+    document.head.appendChild(s);
+  }
+
   function openPanel() {
     if (panelEl) return;
+    injectStyles();
     panelEl = document.createElement('div');
     panelEl.dataset.xbBackendPanel = '1';
-    panelEl.setAttribute('style', 'position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:16px;');
+    panelEl.className = 'xb-bk-overlay';
     panelEl.innerHTML = [
-      '<div style="display:flex;flex-direction:column;width:100%;max-width:980px;height:85vh;border-radius:10px;border:1px solid ' + BORDER + ';background:hsl(var(--background));color:hsl(var(--foreground));box-shadow:0 12px 40px rgba(0,0,0,.35);overflow:hidden;">',
-      '<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid ' + BORDER + ';padding:12px 20px;">',
-      '<div style="font-size:16px;font-weight:600;">后端管理</div>',
-      '<div style="display:flex;gap:8px;">',
+      '<div class="xb-bk-modal">',
+      '<div class="xb-bk-head">',
+      '<div class="xb-bk-title">后端管理</div>',
+      '<div class="xb-bk-actions">',
       '<button data-xb-refresh type="button" style="' + BTN + '">刷新</button>',
       '<button data-xb-upgrade-selected type="button" style="' + BTN_PRIMARY + '">升级所选</button>',
       '<button data-xb-close type="button" style="' + BTN + '">关闭</button>',
       '</div>',
       '</div>',
-      '<div data-xb-body style="flex:1;overflow:auto;padding:12px 20px;"><div style="padding:40px 0;text-align:center;font-size:13px;color:' + MUTED + ';">加载中…</div></div>',
-      '<div style="display:flex;align-items:center;gap:8px;border-top:1px solid ' + BORDER + ';padding:8px 20px;">',
+      '<div data-xb-body class="xb-bk-body"><div style="padding:40px 0;text-align:center;font-size:13px;color:' + MUTED + ';">加载中…</div></div>',
+      '<div class="xb-bk-foot">',
       '<label style="white-space:nowrap;font-size:12px;color:' + MUTED + ';">下载源</label>',
-      '<input data-xb-download-base type="text" placeholder="留空使用默认 GitHub releases" style="flex:1;height:32px;border-radius:6px;border:1px solid ' + BORDER + ';background:transparent;color:inherit;padding:0 8px;font-size:12px;" />',
+      '<input data-xb-download-base type="text" placeholder="留空使用默认 GitHub releases" style="flex:1;min-width:0;height:32px;border-radius:6px;border:1px solid ' + BORDER + ';background:transparent;color:inherit;padding:0 8px;font-size:12px;" />',
       '</div>',
-      '<div style="border-top:1px solid ' + BORDER + ';padding:8px 20px;font-size:12px;color:' + MUTED + ';">升级以「后端进程」为单位下发：同一台机器下的多个节点只会升级一次。</div>',
+      '<div class="xb-bk-note">升级以「后端进程」为单位下发：同一台机器下的多个节点只会升级一次。</div>',
       '</div>'
     ].join('');
 
@@ -223,8 +269,6 @@
       return;
     }
 
-    var td = 'padding:8px 12px 8px 0;border-bottom:1px solid ' + BORDER + ';vertical-align:middle;';
-    var th = 'padding:8px 12px 8px 0;border-bottom:1px solid ' + BORDER + ';text-align:left;font-size:12px;font-weight:500;color:' + MUTED + ';';
     var smallBtn = 'display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid ' + BORDER + ';background:hsl(var(--background));color:inherit;';
 
     var rows = lastBackends.map(function (b) {
@@ -233,27 +277,28 @@
         ? '<span style="color:#059669;">● 在线</span>'
         : '<span style="color:' + MUTED + ';">● 离线</span>';
       var key = backendKey(b);
+      var statusHtml = upgradeStatusText(b);
       return [
         '<tr>',
-        '<td style="' + td + '"><input type="checkbox" data-xb-row="' + escapeHtml(key) + '" ' + (b.online ? '' : 'disabled') + ' /></td>',
-        '<td style="' + td + '"><div style="font-weight:500;">' + escapeHtml(b.name) + '</div><div style="font-size:12px;color:' + MUTED + ';">' + typeLabel + (b.nodes_count ? ' · ' + b.nodes_count + ' 节点' : '') + '</div></td>',
-        '<td style="' + td + 'font-family:monospace;font-size:12px;">' + (Array.isArray(b.ips) && b.ips.length ? b.ips.map(escapeHtml).join('<br>') : '—') + '</td>',
-        '<td style="' + td + 'font-size:13px;">' + online + '</td>',
-        '<td style="' + td + 'font-family:monospace;font-size:12px;">' + (escapeHtml(b.version) || '—') + '</td>',
-        '<td style="' + td + 'font-size:12px;">' + (escapeHtml(b.kernel) || '—') + (b.arch ? ' / ' + escapeHtml(b.arch) : '') + '</td>',
-        '<td style="' + td + 'font-size:12px;color:' + MUTED + ';">' + fmtTime(b.last_seen_at) + '</td>',
-        '<td style="' + td + 'font-size:12px;">' + upgradeStatusText(b) + '</td>',
-        '<td style="' + td + 'text-align:right;"><button type="button" data-xb-upgrade-one="' + escapeHtml(key) + '" style="' + smallBtn + (b.online ? '' : 'pointer-events:none;opacity:.4;') + '">升级</button></td>',
+        '<td class="xb-bk-nolabel"><input type="checkbox" data-xb-row="' + escapeHtml(key) + '" ' + (b.online ? '' : 'disabled') + ' /></td>',
+        '<td class="xb-bk-cell-name xb-bk-nolabel"><div class="xb-bk-name">' + escapeHtml(b.name) + '</div><div class="xb-bk-sub">' + typeLabel + (b.nodes_count ? ' · ' + b.nodes_count + ' 节点' : '') + '</div></td>',
+        '<td data-label="地址/IP" class="xb-bk-mono">' + (Array.isArray(b.ips) && b.ips.length ? b.ips.map(escapeHtml).join('<br>') : '—') + '</td>',
+        '<td data-label="状态" style="font-size:13px;">' + online + '</td>',
+        '<td data-label="版本" class="xb-bk-mono">' + (escapeHtml(b.version) || '—') + '</td>',
+        '<td data-label="内核/架构" style="font-size:12px;">' + (escapeHtml(b.kernel) || '—') + (b.arch ? ' / ' + escapeHtml(b.arch) : '') + '</td>',
+        '<td data-label="最后心跳" style="font-size:12px;color:' + MUTED + ';">' + fmtTime(b.last_seen_at) + '</td>',
+        '<td data-label="升级状态" style="font-size:12px;">' + (statusHtml || '<span style="color:' + MUTED + ';">—</span>') + '</td>',
+        '<td class="xb-bk-cell-action xb-bk-nolabel" style="text-align:right;"><button type="button" data-xb-upgrade-one="' + escapeHtml(key) + '" style="' + smallBtn + (b.online ? '' : 'pointer-events:none;opacity:.4;') + '">升级</button></td>',
         '</tr>'
       ].join('');
     }).join('');
 
     body.innerHTML = [
-      '<table style="width:100%;border-collapse:collapse;font-size:14px;">',
+      '<table class="xb-bk-table">',
       '<thead><tr>',
-      '<th style="' + th + '"><input type="checkbox" data-xb-select-all /></th>',
-      '<th style="' + th + '">后端</th><th style="' + th + '">地址/IP</th><th style="' + th + '">状态</th><th style="' + th + '">版本</th>',
-      '<th style="' + th + '">内核/架构</th><th style="' + th + '">最后心跳</th><th style="' + th + '">升级</th><th style="' + th + '"></th>',
+      '<th><input type="checkbox" data-xb-select-all /></th>',
+      '<th>后端</th><th>地址/IP</th><th>状态</th><th>版本</th>',
+      '<th>内核/架构</th><th>最后心跳</th><th>升级状态</th><th></th>',
       '</tr></thead>',
       '<tbody>' + rows + '</tbody>',
       '</table>'
@@ -327,11 +372,15 @@
       var map = {};
       list.forEach(function (item) { map[item.type + ':' + item.id] = item.status; });
       var changed = false;
+      var pending = false;
       lastBackends.forEach(function (b) {
         var st = map[backendKey(b)];
         if (st && JSON.stringify(st) !== JSON.stringify(b.upgrade)) { b.upgrade = st; changed = true; }
+        if (b.upgrade && (b.upgrade.status === 'dispatched' || b.upgrade.status === 'started')) pending = true;
       });
-      if (changed) renderTable();
+      // Re-render while anything is still in flight so the elapsed-time based
+      // "下发超时" label appears even when the cached status itself is unchanged.
+      if (changed || pending) renderTable();
     }).catch(function () {});
   }
 
