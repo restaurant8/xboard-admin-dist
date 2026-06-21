@@ -8,7 +8,7 @@
   var panelEl = null;
   var navSeen = false;
   var attempts = 0;
-  var state = { page: 1, page_size: 50, total: 0 };
+  var state = { page: 1, page_size: 50, total: 0, order_by: 'record_at', order_dir: 'desc' };
 
   // ---- auth capture (admin API 用 Sanctum Bearer，token 从 SPA 自身请求里捕获) ----
   var capturedAuth = '';
@@ -254,7 +254,8 @@
     var kw = panelEl.querySelector('[data-ur-keyword]').value.trim();
     var ip = panelEl.querySelector('[data-ur-ip]').value.trim();
     var type = panelEl.querySelector('[data-ur-type]').value;
-    var q = ['page=' + state.page, 'page_size=' + state.page_size];
+    var q = ['page=' + state.page, 'page_size=' + state.page_size,
+      'order_by=' + state.order_by, 'order_dir=' + state.order_dir];
     if (kw) q.push('keyword=' + encodeURIComponent(kw));
     if (ip) q.push('ip=' + encodeURIComponent(ip));
     if (type) q.push('type=' + encodeURIComponent(type));
@@ -277,7 +278,11 @@
       return;
     }
     var html = ['<table class="xb-ur-table"><thead><tr>',
-      '<th>用户</th><th>在线IP</th><th>类型</th><th>IP</th><th>归属地</th><th>节点</th><th>User-Agent</th><th>时间</th>',
+      '<th>用户</th>',
+      sortTh('在线IP', 'online'),
+      '<th>类型</th><th>IP</th><th>归属地</th><th>节点</th><th>User-Agent</th>',
+      sortTh('次数', 'count'),
+      sortTh('时间', 'record_at'),
       '</tr></thead><tbody>'];
     rows.forEach(function (r) {
       var oc = r.online_ip_count || 0;
@@ -290,11 +295,33 @@
       html.push('<td data-label="归属地">' + (escapeHtml(r.location) || '<span class="xb-ur-sub">—</span>') + '</td>');
       html.push('<td data-label="节点"><span class="xb-ur-sub">' + (escapeHtml(r.server_name) || '—') + '</span></td>');
       html.push('<td data-label="User-Agent"><span class="xb-ur-sub" title="' + escapeHtml(r.ua) + '" style="display:inline-block;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;">' + (escapeHtml(r.ua) || '—') + '</span></td>');
-      html.push('<td data-label="时间">' + fmtTime(r.record_at) + '</td>');
+      html.push('<td data-label="次数">' + (r.count || 1) + '</td>');
+      html.push('<td data-label="时间">' + fmtTime(r.record_at) + '<div class="xb-ur-sub">首次 ' + fmtTime(r.first_at) + '</div></td>');
       html.push('</tr>');
     });
     html.push('</tbody></table>');
     body.innerHTML = html.join('');
+
+    body.querySelectorAll('th[data-sort]').forEach(function (th) {
+      th.addEventListener('click', function () {
+        var k = th.getAttribute('data-sort');
+        if (state.order_by === k) {
+          state.order_dir = state.order_dir === 'asc' ? 'desc' : 'asc';
+        } else {
+          state.order_by = k;
+          state.order_dir = 'desc';
+        }
+        state.page = 1;
+        reload();
+      });
+    });
+  }
+
+  // 可排序表头：带方向箭头
+  function sortTh(label, key) {
+    var arrow = '';
+    if (state.order_by === key) arrow = state.order_dir === 'asc' ? ' ▲' : ' ▼';
+    return '<th data-sort="' + key + '" style="cursor:pointer;user-select:none;white-space:nowrap;">' + label + arrow + '</th>';
   }
 
   // ---- sidebar injection (作为「用户管理」分组下的子项) --------------------
