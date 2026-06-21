@@ -237,7 +237,7 @@
         '<tr>',
         '<td style="' + td + '"><input type="checkbox" data-xb-row="' + escapeHtml(key) + '" ' + (b.online ? '' : 'disabled') + ' /></td>',
         '<td style="' + td + '"><div style="font-weight:500;">' + escapeHtml(b.name) + '</div><div style="font-size:12px;color:' + MUTED + ';">' + typeLabel + (b.nodes_count ? ' · ' + b.nodes_count + ' 节点' : '') + '</div></td>',
-        '<td style="' + td + 'font-family:monospace;font-size:12px;">' + (escapeHtml(b.host) || '—') + '</td>',
+        '<td style="' + td + 'font-family:monospace;font-size:12px;">' + (escapeHtml(b.ip) || '—') + '</td>',
         '<td style="' + td + 'font-size:13px;">' + online + '</td>',
         '<td style="' + td + 'font-family:monospace;font-size:12px;">' + (escapeHtml(b.version) || '—') + '</td>',
         '<td style="' + td + 'font-size:12px;">' + (escapeHtml(b.kernel) || '—') + (b.arch ? ' / ' + escapeHtml(b.arch) : '') + '</td>',
