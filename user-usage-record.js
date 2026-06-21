@@ -174,6 +174,7 @@
       '<input data-ur-ip type="text" placeholder="IP（可模糊）" style="' + INPUT + 'width:150px;" />',
       '<select data-ur-type style="' + INPUT + '"><option value="">全部类型</option><option value="connect">连接</option><option value="subscribe">订阅</option></select>',
       '<button data-ur-search type="button" style="' + BTN_PRIMARY + '">查询</button>',
+      '<button data-ur-refresh type="button" style="' + BTN + '">刷新</button>',
       '<button data-ur-reset type="button" style="' + BTN + '">重置</button>',
       '</div>',
       '<div data-ur-body class="xb-ur-body"><div style="padding:40px 0;text-align:center;font-size:13px;color:' + MUTED + ';">请输入条件后查询</div></div>',
@@ -197,6 +198,7 @@
       state.page = 1; reload();
     });
     panelEl.querySelector('[data-ur-search]').addEventListener('click', function () { state.page = 1; reload(); });
+    panelEl.querySelector('[data-ur-refresh]').addEventListener('click', function () { reload(); });
     panelEl.querySelector('[data-ur-reset]').addEventListener('click', function () {
       panelEl.querySelector('[data-ur-keyword]').value = '';
       panelEl.querySelector('[data-ur-ip]').value = '';
