@@ -11,6 +11,7 @@
   var pollTimer = null;
   var lastBackends = [];
   var downloadBase = '';
+  var latestRelease = null; // { version, html_url, ... } 来自 GitHub，最新发布版本
   var navButtonSeen = false;
   var attempts = 0;
 
@@ -126,6 +127,42 @@
     });
   }
 
+  // 拉取节点二进制的最新发布版本（用于「可升级」对比）。失败不影响列表展示。
+  function fetchLatest() {
+    return api('GET', '/server/machine/latestVersion').then(function (json) {
+      var d = (json && json.data) || {};
+      latestRelease = (d.latest && d.latest.version) ? d.latest : null;
+      return latestRelease;
+    }).catch(function () { latestRelease = null; });
+  }
+
+  // 版本号归一化与比较（语义化：按 . 分段比较，忽略前缀 v）。
+  function normVer(v) { return String(v == null ? '' : v).trim().replace(/^v/i, ''); }
+  function cmpVer(a, b) {
+    var pa = normVer(a).split('.'), pb = normVer(b).split('.');
+    var n = Math.max(pa.length, pb.length);
+    for (var i = 0; i < n; i++) {
+      var x = parseInt(pa[i], 10) || 0, y = parseInt(pb[i], 10) || 0;
+      if (x > y) return 1;
+      if (x < y) return -1;
+    }
+    return 0;
+  }
+
+  // 版本单元格：当前版本 + 与最新发布版本的对比标记。
+  function versionCell(b) {
+    var out = escapeHtml(b.version) || '—';
+    var lv = latestRelease && latestRelease.version;
+    if (lv && b.version) {
+      if (cmpVer(b.version, lv) >= 0) {
+        out += '<div style="font-size:11px;color:#059669;">✓ 已是最新</div>';
+      } else {
+        out += '<div style="font-size:11px;color:#d97706;">可升级 → ' + escapeHtml(normVer(lv)) + '</div>';
+      }
+    }
+    return '<div>' + out + '</div>';
+  }
+
   // ---- helpers -----------------------------------------------------------
 
   function escapeHtml(value) {
@@ -231,7 +268,7 @@
       '<label style="white-space:nowrap;font-size:12px;color:' + MUTED + ';">下载源</label>',
       '<input data-xb-download-base type="text" placeholder="留空使用默认 GitHub releases" style="flex:1;min-width:0;height:32px;border-radius:6px;border:1px solid ' + BORDER + ';background:transparent;color:inherit;padding:0 8px;font-size:12px;" />',
       '</div>',
-      '<div class="xb-bk-note">升级以「后端进程」为单位下发：同一台机器下的多个节点只会升级一次。</div>',
+      '<div class="xb-bk-note" data-xb-note>升级以「后端进程」为单位下发：同一台机器下的多个节点只会升级一次。</div>',
       '</div>'
     ].join('');
 
@@ -253,14 +290,36 @@
   }
 
   function reload() {
-    fetchBackends().then(renderTable).catch(function (err) {
+    // 版本对比是附加信息，单独拉取且失败静默；列表加载失败才提示。
+    Promise.all([fetchBackends(), fetchLatest()]).then(function () {
+      renderTable();
+    }).catch(function (err) {
       var body = panelEl && panelEl.querySelector('[data-xb-body]');
       if (body) body.innerHTML = '<div style="padding:40px 0;text-align:center;font-size:13px;color:#dc2626;">加载失败：' + escapeHtml(err.message) + '</div>';
     });
   }
 
+  // 底部说明区附带展示最新发布版本（可点击跳转 release 页）。
+  function updateNote() {
+    if (!panelEl) return;
+    var note = panelEl.querySelector('[data-xb-note]');
+    if (!note) return;
+    var base = '升级以「后端进程」为单位下发：同一台机器下的多个节点只会升级一次。';
+    if (latestRelease && latestRelease.version) {
+      var ver = escapeHtml(latestRelease.version);
+      var url = latestRelease.html_url;
+      var verHtml = url
+        ? '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">' + ver + '</a>'
+        : ver;
+      note.innerHTML = base + '<br>最新发布版本：' + verHtml;
+    } else {
+      note.textContent = base;
+    }
+  }
+
   function renderTable() {
     if (!panelEl) return;
+    updateNote();
     var body = panelEl.querySelector('[data-xb-body]');
     if (!body) return;
 
@@ -284,7 +343,7 @@
         '<td class="xb-bk-cell-name xb-bk-nolabel"><div class="xb-bk-name">' + escapeHtml(b.name) + '</div><div class="xb-bk-sub">' + typeLabel + (b.nodes_count ? ' · ' + b.nodes_count + ' 节点' : '') + '</div></td>',
         '<td data-label="地址/IP" class="xb-bk-mono">' + (Array.isArray(b.ips) && b.ips.length ? b.ips.map(escapeHtml).join('<br>') : '—') + '</td>',
         '<td data-label="状态" style="font-size:13px;">' + online + '</td>',
-        '<td data-label="版本" class="xb-bk-mono">' + (escapeHtml(b.version) || '—') + '</td>',
+        '<td data-label="版本" class="xb-bk-mono">' + versionCell(b) + '</td>',
         '<td data-label="内核/架构" style="font-size:12px;">' + (escapeHtml(b.kernel) || '—') + (b.arch ? ' / ' + escapeHtml(b.arch) : '') + '</td>',
         '<td data-label="最后心跳" style="font-size:12px;color:' + MUTED + ';">' + fmtTime(b.last_seen_at) + '</td>',
         '<td data-label="升级状态" style="font-size:12px;">' + (statusHtml || '<span style="color:' + MUTED + ';">—</span>') + '</td>',
