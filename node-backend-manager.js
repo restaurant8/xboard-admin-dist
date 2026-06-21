@@ -191,6 +191,12 @@
         }
         return '<span style="color:#d97706;">已下发…</span>';
       case 'started': return '<span style="color:#d97706;">升级中…</span>';
+      case 'restarting':
+        // 重启没有「完成」回执（进程退出了），用时间推断：超过 30 秒视为已重启。
+        if (u.updated_at && (Date.now() / 1000 - u.updated_at) > 30) {
+          return '<span style="color:#059669;">已重启</span>';
+        }
+        return '<span style="color:#d97706;">重启中…</span>';
       case 'success': return '<span style="color:#059669;">成功 ' + escapeHtml(u.to_version || '') + '</span>';
       case 'skipped': return '<span style="color:' + MUTED + ';">已是最新</span>';
       case 'failed': return '<span style="color:#dc2626;" title="' + escapeHtml(u.error || '') + '">失败</span>';
@@ -347,7 +353,10 @@
         '<td data-label="内核/架构" style="font-size:12px;">' + (escapeHtml(b.kernel) || '—') + (b.arch ? ' / ' + escapeHtml(b.arch) : '') + '</td>',
         '<td data-label="最后心跳" style="font-size:12px;color:' + MUTED + ';">' + fmtTime(b.last_seen_at) + '</td>',
         '<td data-label="升级状态" style="font-size:12px;">' + (statusHtml || '<span style="color:' + MUTED + ';">—</span>') + '</td>',
-        '<td class="xb-bk-cell-action xb-bk-nolabel" style="text-align:right;"><button type="button" data-xb-upgrade-one="' + escapeHtml(key) + '" style="' + smallBtn + (b.online ? '' : 'pointer-events:none;opacity:.4;') + '">升级</button></td>',
+        '<td class="xb-bk-cell-action xb-bk-nolabel" style="text-align:right;white-space:nowrap;">' +
+          '<button type="button" data-xb-upgrade-one="' + escapeHtml(key) + '" style="' + smallBtn + (b.online ? '' : 'pointer-events:none;opacity:.4;') + '">升级</button>' +
+          '<button type="button" data-xb-restart-one="' + escapeHtml(key) + '" style="' + smallBtn + 'margin-left:6px;' + (b.online ? '' : 'pointer-events:none;opacity:.4;') + '">重启</button>' +
+        '</td>',
         '</tr>'
       ].join('');
     }).join('');
@@ -373,6 +382,12 @@
       btn.addEventListener('click', function () {
         var b = findBackend(btn.getAttribute('data-xb-upgrade-one'));
         if (b) confirmUpgrade([b]);
+      });
+    });
+    body.querySelectorAll('[data-xb-restart-one]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var b = findBackend(btn.getAttribute('data-xb-restart-one'));
+        if (b) confirmRestart([b]);
       });
     });
   }
@@ -413,6 +428,18 @@
     });
   }
 
+  function confirmRestart(backends) {
+    var names = backends.map(function (b) { return b.name; }).join('、');
+    if (!window.confirm('确认重启以下后端进程？\n\n' + names + '\n\n重启会短暂断连，进程由 systemd 自动拉起。')) return;
+    var targets = backends.map(function (b) { return { type: b.type, id: b.id }; });
+    api('POST', '/server/machine/restart', { targets: targets }).then(function () {
+      backends.forEach(function (b) { b.upgrade = { status: 'restarting' }; });
+      renderTable();
+    }).catch(function (err) {
+      window.alert('下发重启失败：' + err.message);
+    });
+  }
+
   // ---- status polling ----------------------------------------------------
 
   function startPolling() {
@@ -435,7 +462,7 @@
       lastBackends.forEach(function (b) {
         var st = map[backendKey(b)];
         if (st && JSON.stringify(st) !== JSON.stringify(b.upgrade)) { b.upgrade = st; changed = true; }
-        if (b.upgrade && (b.upgrade.status === 'dispatched' || b.upgrade.status === 'started')) pending = true;
+        if (b.upgrade && (b.upgrade.status === 'dispatched' || b.upgrade.status === 'started' || b.upgrade.status === 'restarting')) pending = true;
       });
       // Re-render while anything is still in flight so the elapsed-time based
       // "下发超时" label appears even when the cached status itself is unchanged.
