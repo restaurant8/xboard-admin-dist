@@ -110,6 +110,10 @@
     if (!force && serverConfigRequested && now - serverConfigLastRequestAt < 10000) return;
     var base = adminApiBase();
     if (!base || !window.fetch) return;
+    // Don't fire without an auth token (the init call runs before the SPA has
+    // made any authenticated request) — it would just 403. serverConfig is also
+    // captured passively from the SPA's own config/fetch via the fetch/XHR patch.
+    if (!capturedAuth) return;
 
     serverConfigLoading = true;
     serverConfigLastRequestAt = now;
