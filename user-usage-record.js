@@ -307,21 +307,31 @@
   var EMAIL_RE = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/;
   var ROW_BTN_STYLE = 'display:inline-flex;align-items:center;height:24px;padding:0 8px;margin-left:6px;border-radius:4px;font-size:12px;line-height:1;cursor:pointer;border:1px solid hsl(var(--border));background:hsl(var(--background));color:inherit;white-space:nowrap;';
 
+  // 逐个文本节点提取邮箱：ID 和邮箱常在同一单元格的不同元素里，
+  // textContent 会把它们无分隔拼接成「6528邮箱@域名」，把 ID 误当邮箱前缀。
+  // 走文本节点，邮箱所在的那个文本节点就是干净的邮箱。
+  function extractEmailFromRow(tr) {
+    try {
+      var walker = document.createTreeWalker(tr, NodeFilter.SHOW_TEXT, null);
+      var n;
+      while ((n = walker.nextNode())) {
+        var m = (n.nodeValue || '').match(EMAIL_RE);
+        if (m) return m[0];
+      }
+    } catch (e) {}
+    var mm = (tr.textContent || '').match(EMAIL_RE);
+    return mm ? mm[0] : '';
+  }
+
   function injectUserRowButtons() {
     var rows = document.querySelectorAll('table tbody tr');
     for (var i = 0; i < rows.length; i++) {
       var tr = rows[i];
       if (tr.getAttribute('data-ur-rowbtn')) continue;
-      var cells = tr.querySelectorAll('td');
-      // 逐个单元格提取邮箱：整行 textContent 会把 ID 列和邮箱列直接拼接
-      // （如 "6528email@x.com"），导致提取到错误的邮箱。
-      var email = '';
-      for (var c = 0; c < cells.length; c++) {
-        var mm = (cells[c].textContent || '').match(EMAIL_RE);
-        if (mm) { email = mm[0]; break; }
-      }
+      var email = extractEmailFromRow(tr);
       if (!email) continue;
       tr.setAttribute('data-ur-rowbtn', '1');
+      var cells = tr.querySelectorAll('td');
       var target = cells.length ? cells[cells.length - 1] : tr;
       var btn = document.createElement('button');
       btn.type = 'button';
