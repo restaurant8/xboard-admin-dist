@@ -312,11 +312,16 @@
     for (var i = 0; i < rows.length; i++) {
       var tr = rows[i];
       if (tr.getAttribute('data-ur-rowbtn')) continue;
-      var m = (tr.textContent || '').match(EMAIL_RE);
-      if (!m) continue;
-      var email = m[0];
-      tr.setAttribute('data-ur-rowbtn', '1');
       var cells = tr.querySelectorAll('td');
+      // 逐个单元格提取邮箱：整行 textContent 会把 ID 列和邮箱列直接拼接
+      // （如 "6528email@x.com"），导致提取到错误的邮箱。
+      var email = '';
+      for (var c = 0; c < cells.length; c++) {
+        var mm = (cells[c].textContent || '').match(EMAIL_RE);
+        if (mm) { email = mm[0]; break; }
+      }
+      if (!email) continue;
+      tr.setAttribute('data-ur-rowbtn', '1');
       var target = cells.length ? cells[cells.length - 1] : tr;
       var btn = document.createElement('button');
       btn.type = 'button';
