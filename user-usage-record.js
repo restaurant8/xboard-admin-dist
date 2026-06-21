@@ -147,8 +147,14 @@
   }
 
   // ---- panel -------------------------------------------------------------
-  function openPanel() {
-    if (panelEl) return;
+  function openPanel(prefill) {
+    if (panelEl) {
+      if (prefill != null) {
+        var kwEl = panelEl.querySelector('[data-ur-keyword]');
+        if (kwEl) { kwEl.value = prefill; state.page = 1; reload(); }
+      }
+      return;
+    }
     injectStyles();
     panelEl = document.createElement('div');
     panelEl.className = 'xb-ur-overlay';
@@ -194,6 +200,7 @@
     });
 
     document.body.appendChild(panelEl);
+    if (prefill != null) panelEl.querySelector('[data-ur-keyword]').value = prefill;
     reload();
   }
 
@@ -230,18 +237,17 @@
       return;
     }
     var html = ['<table class="xb-ur-table"><thead><tr>',
-      '<th>用户</th><th>类型</th><th>IP</th><th>节点 / 客户端</th><th>首次</th><th>最近</th><th>次数</th>',
+      '<th>用户</th><th>类型</th><th>IP</th><th>归属地</th><th>节点</th><th>User-Agent</th><th>时间</th>',
       '</tr></thead><tbody>'];
     rows.forEach(function (r) {
-      var who = r.type === 'subscribe' ? escapeHtml(r.ua || '—') : escapeHtml(r.server_name || '—');
       html.push('<tr>');
       html.push('<td data-label="用户"><div>' + escapeHtml(r.user_email || ('#' + r.user_id)) + '</div><div class="xb-ur-sub">ID ' + r.user_id + '</div></td>');
       html.push('<td data-label="类型">' + typeBadge(r.type) + '</td>');
       html.push('<td data-label="IP" class="xb-ur-mono">' + escapeHtml(r.ip) + '</td>');
-      html.push('<td data-label="节点/客户端"><span class="xb-ur-sub">' + who + '</span></td>');
-      html.push('<td data-label="首次"><span class="xb-ur-sub">' + fmtTime(r.first_at) + '</span></td>');
-      html.push('<td data-label="最近">' + fmtTime(r.last_at) + '</td>');
-      html.push('<td data-label="次数">' + r.count + '</td>');
+      html.push('<td data-label="归属地">' + (escapeHtml(r.location) || '<span class="xb-ur-sub">—</span>') + '</td>');
+      html.push('<td data-label="节点"><span class="xb-ur-sub">' + (escapeHtml(r.server_name) || '—') + '</span></td>');
+      html.push('<td data-label="User-Agent"><span class="xb-ur-sub" title="' + escapeHtml(r.ua) + '" style="display:inline-block;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;">' + (escapeHtml(r.ua) || '—') + '</span></td>');
+      html.push('<td data-label="时间">' + fmtTime(r.record_at) + '</td>');
       html.push('</tr>');
     });
     html.push('</tbody></table>');
@@ -297,6 +303,33 @@
     document.body.appendChild(b);
   }
 
+  // ---- 用户列表行内「使用记录」按钮（点进去看该用户） --------------------
+  var EMAIL_RE = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/;
+  var ROW_BTN_STYLE = 'display:inline-flex;align-items:center;height:24px;padding:0 8px;margin-left:6px;border-radius:4px;font-size:12px;line-height:1;cursor:pointer;border:1px solid hsl(var(--border));background:hsl(var(--background));color:inherit;white-space:nowrap;';
+
+  function injectUserRowButtons() {
+    var rows = document.querySelectorAll('table tbody tr');
+    for (var i = 0; i < rows.length; i++) {
+      var tr = rows[i];
+      if (tr.getAttribute('data-ur-rowbtn')) continue;
+      var m = (tr.textContent || '').match(EMAIL_RE);
+      if (!m) continue;
+      var email = m[0];
+      tr.setAttribute('data-ur-rowbtn', '1');
+      var cells = tr.querySelectorAll('td');
+      var target = cells.length ? cells[cells.length - 1] : tr;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = '使用记录';
+      btn.setAttribute('data-ur-rowbtn-el', '1');
+      btn.setAttribute('style', ROW_BTN_STYLE);
+      (function (em) {
+        btn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); openPanel(em); });
+      })(email);
+      target.appendChild(btn);
+    }
+  }
+
   var injectPending = false;
   function scheduleInject() {
     if (injectPending) return;
@@ -304,6 +337,7 @@
     window.requestAnimationFrame(function () {
       injectPending = false;
       injectChildItem();
+      injectUserRowButtons();
       attempts++;
       if (!navSeen && attempts > 80) injectFallbackButton();
     });
