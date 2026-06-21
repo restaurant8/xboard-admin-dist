@@ -169,6 +169,7 @@
       '</div>',
       '</div>',
       '<div class="xb-ur-filters">',
+      '<button data-ur-back type="button" style="' + BTN + 'display:none;">← 返回全部</button>',
       '<input data-ur-keyword type="text" placeholder="用户邮箱 / ID" style="' + INPUT + 'width:180px;" />',
       '<input data-ur-ip type="text" placeholder="IP（可模糊）" style="' + INPUT + 'width:150px;" />',
       '<select data-ur-type style="' + INPUT + '"><option value="">全部类型</option><option value="connect">连接</option><option value="subscribe">订阅</option></select>',
@@ -189,6 +190,12 @@
     panelEl.addEventListener('click', function (e) { if (e.target === panelEl) closePanel(); });
     panelEl.querySelector('[data-ur-close]').addEventListener('click', closePanel);
     panelEl.querySelector('[data-ur-clear]').addEventListener('click', clearRecords);
+    panelEl.querySelector('[data-ur-back]').addEventListener('click', function () {
+      panelEl.querySelector('[data-ur-keyword]').value = '';
+      panelEl.querySelector('[data-ur-ip]').value = '';
+      panelEl.querySelector('[data-ur-type]').value = '';
+      state.page = 1; reload();
+    });
     panelEl.querySelector('[data-ur-search]').addEventListener('click', function () { state.page = 1; reload(); });
     panelEl.querySelector('[data-ur-reset]').addEventListener('click', function () {
       panelEl.querySelector('[data-ur-keyword]').value = '';
@@ -259,6 +266,9 @@
     if (kw) q.push('keyword=' + encodeURIComponent(kw));
     if (ip) q.push('ip=' + encodeURIComponent(ip));
     if (type) q.push('type=' + encodeURIComponent(type));
+
+    var backBtn = panelEl.querySelector('[data-ur-back]');
+    if (backBtn) backBtn.style.display = (kw || ip || type) ? 'inline-flex' : 'none';
 
     api('GET', '/user/usageRecords?' + q.join('&')).then(function (json) {
       var d = (json && json.data) || {};
