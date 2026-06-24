@@ -1,0 +1,1 @@
+import{i as e,n as t}from"./api-client-BFT5OzLT.js";async function n(){return(await t(`/server/route/fetch`)).data}function r(t){return e(`/server/route/save`,t)}function i(t){return e(`/server/route/drop`,{id:t})}export{n,r,i as t};
