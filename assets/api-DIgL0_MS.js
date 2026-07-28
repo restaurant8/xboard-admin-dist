@@ -1,0 +1,1 @@
+import{i as e,n as t,r as n}from"./api-client-CKKJtDSp.js";async function r(e){return n(`/winback/fetch`,e)}async function i(){return t(`/winback/stats`)}async function a(){return e(`/winback/preview`)}export{i as n,a as r,r as t};

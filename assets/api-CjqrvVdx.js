@@ -1,1 +1,0 @@
-import{i as e,n as t}from"./api-client-BFT5OzLT.js";function n(){return t(`/config/fetch`)}function r(t){return e(`/config/save`,t)}function i(t){return e(`/config/setTelegramWebhook`,{telegram_bot_token:t})}function a(){return e(`/config/testSendMail`)}export{a as i,r as n,i as r,n as t};

@@ -1,0 +1,1 @@
+function e(e){let t=Number(e??0);if(!t)return`0 B`;let n=[`B`,`KB`,`MB`,`GB`,`TB`,`PB`],r=Math.min(Math.floor(Math.log(Math.abs(t))/Math.log(1024)),n.length-1);return`${(t/1024**r).toFixed(2)} ${n[r]}`}function t(e){return`¥${(Number(e??0)/100).toFixed(2)}`}export{t as n,e as t};
